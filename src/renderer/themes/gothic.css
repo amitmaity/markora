@@ -1,0 +1,47 @@
+/* Gothic Theme — modern sans-serif, bold headers */
+:root[data-theme="gothic"],
+[data-theme="gothic"] {
+  --chrome-bg: #fafafa;
+  --chrome-border: #e0e0e0;
+  --chrome-text: #111;
+
+  --sidebar-bg: #f5f5f5;
+  --sidebar-text: #111;
+  --sidebar-border: #e0e0e0;
+  --sidebar-hover: #ebebeb;
+  --sidebar-active: #e3f2fd;
+  --sidebar-active-text: #1565c0;
+
+  --editor-bg: #ffffff;
+  --text-color: #111111;
+  --heading-color: #000000;
+  --heading-border: #e0e0e0;
+  --link-color: #1565c0;
+  --code-bg: #f5f5f5;
+  --code-color: #b71c1c;
+  --pre-bg: #1c1c1c;
+  --blockquote-border: #bdbdbd;
+  --blockquote-color: #616161;
+  --table-border: #e0e0e0;
+  --table-header-bg: #fafafa;
+  --table-row-alt: #fafafa;
+  --hr-color: #e0e0e0;
+  --highlight-bg: #fff9c4;
+  --selection-bg: rgba(21, 101, 192, 0.12);
+  --placeholder-color: #bdbdbd;
+  --scrollbar-thumb: rgba(0,0,0,0.15);
+  --scrollbar-thumb-hover: rgba(0,0,0,0.25);
+
+  --font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --mono-font: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  --font-size: 16px;
+  --line-height: 1.75;
+  --content-max-width: 900px;
+}
+
+[data-theme="gothic"] .editor-content .ProseMirror h1,
+[data-theme="gothic"] .editor-content .ProseMirror h2,
+[data-theme="gothic"] .editor-content .ProseMirror h3 {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}

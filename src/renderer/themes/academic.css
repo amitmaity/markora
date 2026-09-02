@@ -1,0 +1,52 @@
+/* Academic Theme — elegant serif, paper-like */
+:root[data-theme="academic"],
+[data-theme="academic"] {
+  --chrome-bg: #f0ece4;
+  --chrome-border: #c9bfa8;
+  --chrome-text: #2c2519;
+
+  --sidebar-bg: #eae5db;
+  --sidebar-text: #2c2519;
+  --sidebar-border: #c9bfa8;
+  --sidebar-hover: #ddd8ce;
+  --sidebar-active: #c8bca8;
+  --sidebar-active-text: #5a3e28;
+
+  --editor-bg: #faf8f2;
+  --text-color: #2c2519;
+  --heading-color: #1a1208;
+  --heading-border: #c9bfa8;
+  --link-color: #7b3f00;
+  --code-bg: #f0ece4;
+  --code-color: #8b0000;
+  --pre-bg: #2b2318;
+  --blockquote-border: #c9bfa8;
+  --blockquote-color: #6b5b45;
+  --table-border: #c9bfa8;
+  --table-header-bg: #ede8de;
+  --table-row-alt: #f5f2ea;
+  --hr-color: #c9bfa8;
+  --highlight-bg: #fef3c7;
+  --selection-bg: rgba(123, 63, 0, 0.12);
+  --placeholder-color: #a89a80;
+  --scrollbar-thumb: rgba(0,0,0,0.18);
+  --scrollbar-thumb-hover: rgba(0,0,0,0.28);
+
+  --font-family: Georgia, 'Times New Roman', Times, serif;
+  --mono-font: 'Courier New', Courier, monospace;
+  --font-size: 17px;
+  --line-height: 1.8;
+  --content-max-width: 760px;
+}
+
+[data-theme="academic"] .editor-content .ProseMirror {
+  text-align: justify;
+  hyphens: auto;
+}
+
+[data-theme="academic"] .editor-content .ProseMirror h1,
+[data-theme="academic"] .editor-content .ProseMirror h2,
+[data-theme="academic"] .editor-content .ProseMirror h3 {
+  text-align: center;
+  letter-spacing: 0.02em;
+}

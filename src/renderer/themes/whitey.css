@@ -1,0 +1,40 @@
+/* Whitey Theme — warm light, soft contrast */
+:root[data-theme="whitey"],
+[data-theme="whitey"] {
+  --chrome-bg: #f9f7f4;
+  --chrome-border: #e8e3dc;
+  --chrome-text: #3a3530;
+
+  --sidebar-bg: #f4f1ed;
+  --sidebar-text: #3a3530;
+  --sidebar-border: #e8e3dc;
+  --sidebar-hover: #ede9e4;
+  --sidebar-active: #e2dbd3;
+  --sidebar-active-text: #5b4636;
+
+  --editor-bg: #fefefe;
+  --text-color: #3a3530;
+  --heading-color: #2a251f;
+  --heading-border: #e8e3dc;
+  --link-color: #5b6ca8;
+  --code-bg: #f4f1ed;
+  --code-color: #a64b2a;
+  --pre-bg: #2a2520;
+  --blockquote-border: #c8c0b5;
+  --blockquote-color: #7a706a;
+  --table-border: #e8e3dc;
+  --table-header-bg: #f4f1ed;
+  --table-row-alt: #f9f7f4;
+  --hr-color: #e8e3dc;
+  --highlight-bg: #fff4d6;
+  --selection-bg: rgba(91, 108, 168, 0.12);
+  --placeholder-color: #b0a898;
+  --scrollbar-thumb: rgba(0,0,0,0.14);
+  --scrollbar-thumb-hover: rgba(0,0,0,0.22);
+
+  --font-family: 'Lato', 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono-font: 'Source Code Pro', Consolas, monospace;
+  --font-size: 16px;
+  --line-height: 1.7;
+  --content-max-width: 820px;
+}

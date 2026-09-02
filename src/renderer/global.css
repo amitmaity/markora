@@ -1,0 +1,337 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* ===== Base Reset ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  font-size: var(--font-size, 16px);
+  background-color: var(--chrome-bg, #f5f5f5);
+  color: var(--chrome-text, #333);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+/* Allow text selection inside editor area */
+.editor-content, .editor-content * {
+  user-select: text;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, rgba(0,0,0,0.2));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, rgba(0,0,0,0.35));
+}
+
+/* ===== Titlebar drag region ===== */
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+.titlebar-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* ===== Focus Mode ===== */
+.focus-mode .ProseMirror > * {
+  opacity: 0.25;
+  transition: opacity 0.15s ease;
+}
+.focus-mode .ProseMirror > *.has-focus,
+.focus-mode .ProseMirror > *.is-empty {
+  opacity: 1;
+}
+
+/* ===== Find & Replace highlights ===== */
+.editor-content .find-match {
+  background: rgba(255, 196, 0, 0.4);
+  border-radius: 2px;
+}
+.editor-content .find-match-active {
+  background: rgba(255, 149, 0, 0.65);
+  outline: 1px solid rgba(200, 100, 0, 0.6);
+}
+
+/* ===== TipTap editor prose styles (inside .editor-content) ===== */
+.editor-content .ProseMirror {
+  max-width: var(--content-max-width, 860px);
+  margin: 0 auto;
+  padding: 48px 60px 120px;
+  min-height: 100%;
+  outline: none;
+  line-height: var(--line-height, 1.7);
+  color: var(--text-color, #333);
+  font-family: var(--font-family, inherit);
+  font-size: var(--font-size, 16px);
+}
+
+.editor-content .ProseMirror > * + * {
+  margin-top: 0.75em;
+}
+
+/* Headings */
+.editor-content .ProseMirror h1,
+.editor-content .ProseMirror h2,
+.editor-content .ProseMirror h3,
+.editor-content .ProseMirror h4,
+.editor-content .ProseMirror h5,
+.editor-content .ProseMirror h6 {
+  color: var(--heading-color, #24292e);
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.editor-content .ProseMirror h1 { font-size: 2em; }
+.editor-content .ProseMirror h2 { font-size: 1.5em; }
+.editor-content .ProseMirror h3 { font-size: 1.25em; }
+.editor-content .ProseMirror h4 { font-size: 1em; }
+.editor-content .ProseMirror h5 { font-size: 0.875em; }
+.editor-content .ProseMirror h6 { font-size: 0.85em; color: #6a737d; }
+
+/* Paragraph */
+.editor-content .ProseMirror p {
+  margin: 0.5em 0;
+}
+
+/* Strong, em */
+.editor-content .ProseMirror strong { font-weight: 600; }
+.editor-content .ProseMirror em { font-style: italic; }
+.editor-content .ProseMirror s { text-decoration: line-through; opacity: 0.65; }
+.editor-content .ProseMirror u { text-decoration: underline; }
+
+/* Mark / highlight */
+.editor-content .ProseMirror mark {
+  background: var(--highlight-bg, #fff3cd);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* Links */
+.editor-content .ProseMirror a {
+  color: var(--link-color, #0366d6);
+  text-decoration: none;
+}
+.editor-content .ProseMirror a:hover {
+  text-decoration: underline;
+}
+
+/* Inline code */
+.editor-content .ProseMirror code {
+  font-family: var(--mono-font, 'JetBrains Mono', Consolas, Monaco, monospace);
+  font-size: 0.875em;
+  background: var(--code-bg, #f3f4f6);
+  color: var(--code-color, #c0392b);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+
+/* Blockquote */
+.editor-content .ProseMirror blockquote {
+  border-left: 4px solid var(--blockquote-border, #dfe2e5);
+  padding-left: 1em;
+  color: var(--blockquote-color, #6a737d);
+  margin: 1em 0;
+}
+
+/* Lists */
+.editor-content .ProseMirror ul,
+.editor-content .ProseMirror ol {
+  padding-left: 2em;
+  margin: 0.5em 0;
+}
+.editor-content .ProseMirror li > p {
+  margin: 0;
+}
+.editor-content .ProseMirror li + li {
+  margin-top: 0.25em;
+}
+
+/* Task list */
+.editor-content .ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.5em;
+}
+.editor-content .ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+}
+.editor-content .ProseMirror ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.editor-content .ProseMirror ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+.editor-content .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* Horizontal rule */
+.editor-content .ProseMirror hr {
+  border: none;
+  border-top: 2px solid var(--hr-color, #eaecef);
+  margin: 2em 0;
+}
+
+/* Images */
+.editor-content .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+.editor-content .ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid var(--link-color, #0366d6);
+}
+
+/* Tables */
+.editor-content .ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  overflow: auto;
+  font-size: 0.9em;
+}
+.editor-content .ProseMirror th,
+.editor-content .ProseMirror td {
+  border: 1px solid var(--table-border, #dfe2e5);
+  padding: 6px 13px;
+  text-align: left;
+}
+.editor-content .ProseMirror th {
+  background: var(--table-header-bg, #f6f8fa);
+  font-weight: 600;
+}
+.editor-content .ProseMirror tr:nth-child(even) td {
+  background: var(--table-row-alt, #f8f9fa);
+}
+.editor-content .ProseMirror .selectedCell {
+  background: var(--selection-bg, #c8daf4) !important;
+}
+
+/* Code block (pre) — base styles, NodeView handles highlighting */
+.editor-content .ProseMirror pre {
+  background: var(--pre-bg, #1e1e1e);
+  border-radius: 8px;
+  padding: 1em 1.25em;
+  overflow-x: auto;
+  margin: 1em 0;
+  position: relative;
+}
+.editor-content .ProseMirror pre code {
+  font-family: var(--mono-font, 'JetBrains Mono', Consolas, Monaco, monospace);
+  font-size: 0.875em;
+  color: #d4d4d4;
+  background: none;
+  padding: 0;
+}
+
+/* Placeholder */
+.editor-content .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--placeholder-color, #adb5bd);
+  pointer-events: none;
+  height: 0;
+}
+
+/* KaTeX display block */
+.editor-content .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5em 0;
+}
+
+/* Mermaid diagram container */
+.mermaid-diagram {
+  display: flex;
+  justify-content: center;
+  padding: 1em;
+  background: var(--code-bg, #f8f9fa);
+  border-radius: 8px;
+  margin: 1em 0;
+  overflow-x: auto;
+}
+
+/* Selection */
+.editor-content .ProseMirror ::selection {
+  background: var(--selection-bg, rgba(0, 112, 243, 0.15));
+}
+
+/* ===== Syntax Highlighting (lowlight / hljs) ===== */
+.hljs-keyword, .hljs-selector-tag, .hljs-subst { color: #ff7b72; font-weight: 500; }
+.hljs-string, .hljs-title, .hljs-section, .hljs-attribute, .hljs-literal { color: #a5d6ff; }
+.hljs-comment, .hljs-quote, .hljs-deletion { color: #8b949e; font-style: italic; }
+.hljs-number, .hljs-regexp, .hljs-link { color: #79c0ff; }
+.hljs-function, .hljs-class, .hljs-params { color: #d2a8ff; }
+.hljs-built_in, .hljs-bullet { color: #ffa657; }
+.hljs-variable, .hljs-template-variable { color: #79c0ff; }
+
+/* Light code blocks syntax override */
+[data-theme="github"] pre .hljs-keyword,
+[data-theme="academic"] pre .hljs-keyword { color: #cf222e; }
+
+/* ===== Print Stylesheet ===== */
+@media print {
+  .no-print,
+  .titlebar-drag,
+  aside,
+  nav,
+  .statusbar,
+  .sidebar,
+  button,
+  .floating-toolbar,
+  .table-controls {
+    display: none !important;
+  }
+
+  html, body, #root, #root > div, .editor-content {
+    height: auto !important;
+    width: 100% !important;
+    overflow: visible !important;
+    position: static !important;
+    background: #ffffff !important;
+    color: #1f2328 !important;
+  }
+
+  .editor-content .ProseMirror {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  pre, .code-block-wrapper, table, blockquote, img, figure, .katex-display {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+}

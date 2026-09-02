@@ -1,0 +1,54 @@
+/* Newsprint Theme — editorial serif */
+:root[data-theme="newsprint"],
+[data-theme="newsprint"] {
+  --chrome-bg: #e8e2d8;
+  --chrome-border: #bbb4a8;
+  --chrome-text: #1a1a1a;
+
+  --sidebar-bg: #ddd7cc;
+  --sidebar-text: #1a1a1a;
+  --sidebar-border: #bbb4a8;
+  --sidebar-hover: #cdc7bc;
+  --sidebar-active: #c4bdb2;
+  --sidebar-active-text: #2e1503;
+
+  --editor-bg: #f7f4ed;
+  --text-color: #1a1a1a;
+  --heading-color: #000000;
+  --heading-border: #bbb4a8;
+  --link-color: #002d72;
+  --code-bg: #ece9e2;
+  --code-color: #8b0000;
+  --pre-bg: #1a1a1a;
+  --blockquote-border: #888;
+  --blockquote-color: #555;
+  --table-border: #bbb4a8;
+  --table-header-bg: #e4dfd7;
+  --table-row-alt: #f0ece3;
+  --hr-color: #1a1a1a;
+  --highlight-bg: #f5e67a;
+  --selection-bg: rgba(0, 45, 114, 0.1);
+  --placeholder-color: #9a9480;
+  --scrollbar-thumb: rgba(0,0,0,0.18);
+  --scrollbar-thumb-hover: rgba(0,0,0,0.28);
+
+  --font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --mono-font: 'Courier New', Courier, monospace;
+  --font-size: 17px;
+  --line-height: 1.85;
+  --content-max-width: 720px;
+}
+
+[data-theme="newsprint"] .editor-content .ProseMirror h1 {
+  font-size: 2.4em;
+  border-bottom: 3px solid #1a1a1a;
+  letter-spacing: -0.02em;
+}
+[data-theme="newsprint"] .editor-content .ProseMirror h2 {
+  font-size: 1.7em;
+  border-bottom: 1px solid #888;
+}
+
+[data-theme="newsprint"] .editor-content .ProseMirror hr {
+  border-top: 3px double #888;
+}
