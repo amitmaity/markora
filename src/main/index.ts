@@ -8,7 +8,7 @@ import {
   nativeTheme,
   type MenuItemConstructorOptions
 } from 'electron'
-import { join } from 'path'
+import { join, extname } from 'path'
 import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, unlinkSync } from 'fs'
 import { is } from '@electron-toolkit/utils'
 
@@ -393,7 +393,8 @@ function buildMenu(win: BrowserWindow | null): void {
         { label: 'Insert Math', accelerator: 'CmdOrCtrl+Shift+M', click: () => send('insert:math') },
         { label: 'Insert Table', accelerator: 'CmdOrCtrl+Shift+T', click: () => send('insert:table') },
         { label: 'Insert Code Snippet…', accelerator: 'CmdOrCtrl+Alt+C', click: () => send('insert:snippet') },
-        { label: 'Insert Code Block', accelerator: 'CmdOrCtrl+Shift+K', click: () => send('insert:codeBlock') }
+        { label: 'Insert Code Block', accelerator: 'CmdOrCtrl+Shift+K', click: () => send('insert:codeBlock') },
+        { label: 'Insert Mermaid Diagram…', accelerator: 'CmdOrCtrl+Alt+M', click: () => send('insert:mermaid') }
       ]
     },
 
@@ -511,6 +512,49 @@ function registerIpcHandlers(): void {
     })
     if (result.canceled || !result.filePaths[0]) return null
     return result.filePaths[0]
+  })
+
+  // Pick an image and return it as a data URL so it renders regardless of
+  // whether the renderer origin is http (dev) or file:// (packaged)
+  const IMAGE_MIME: Record<string, string> = {
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    gif: 'image/gif',
+    svg: 'image/svg+xml',
+    webp: 'image/webp',
+    avif: 'image/avif',
+    bmp: 'image/bmp',
+    ico: 'image/x-icon'
+  }
+  const MAX_IMAGE_BYTES = 10 * 1024 * 1024
+
+  ipcMain.handle('dialog:openImage', async () => {
+    if (!mainWindow) return null
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openFile'],
+      filters: [
+        { name: 'Images', extensions: Object.keys(IMAGE_MIME) },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    })
+    if (result.canceled || !result.filePaths[0]) return null
+    const filePath = result.filePaths[0]
+    try {
+      const stat = statSync(filePath)
+      if (stat.size > MAX_IMAGE_BYTES) {
+        dialog.showErrorBox('Image too large', `Images up to 10 MB are supported.\n${filePath}`)
+        return null
+      }
+      const ext = extname(filePath).slice(1).toLowerCase()
+      const mime = IMAGE_MIME[ext] ?? 'image/png'
+      const dataUrl = `data:${mime};base64,${readFileSync(filePath).toString('base64')}`
+      return { path: filePath, name: baseName(filePath), dataUrl }
+    } catch (e) {
+      console.error('Failed to read image', e)
+      dialog.showErrorBox('Could not read image', filePath)
+      return null
+    }
   })
 
   // Save HTML export

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useEditorStore } from '../store/editorStore'
 import { saveFile, saveFileAs, openFile } from './fileService'
+import { insertTable } from './insertions'
 import type { Editor } from '@tiptap/core'
 
 type ShortcutHandler = (e: KeyboardEvent) => void
@@ -143,7 +144,7 @@ export function useShortcuts(editorRef: React.MutableRefObject<Editor | null>): 
       }
       if (matchShortcut(e, { key: 't', mod: true, shift: true })) {
         e.preventDefault()
-        editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+        insertTable()
         return
       }
     }

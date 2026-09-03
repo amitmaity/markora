@@ -19,7 +19,6 @@ import { createLowlight, common } from 'lowlight'
 import { Markdown } from 'tiptap-markdown'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 import { openSearchPanel, closeSearchPanel } from '@codemirror/search'
-import type { EditorView } from '@codemirror/view'
 
 import { MathInline, MathBlock } from './extensions/MathExtension'
 import { MermaidBlock } from './extensions/MermaidExtension'
@@ -33,8 +32,9 @@ import CodeSnippetModal from './CodeSnippetModal'
 
 import { useEditorStore } from '../../store/editorStore'
 import { useShortcuts } from '../../services/shortcutRegistry'
-import { editorInstance } from '../../services/editorInstance'
+import { editorInstance, sourceEditorInstance } from '../../services/editorInstance'
 import { saveFile, saveFileAs, confirmDiscardChanges } from '../../services/fileService'
+import { insertTable, insertMermaidDiagram, insertImageFromPicker } from '../../services/insertions'
 import { exportDocumentToPdf, exportDocumentToHtml } from '../../services/exportService'
 import type { HeadingItem } from '../../types/editor'
 
@@ -100,8 +100,6 @@ export default function TyporaEditor() {
   // Markdown the editor last emitted (via onUpdate) — used to tell
   // "store changed because the editor typed" apart from external store changes.
   const lastEmittedRef = useRef<string | null>(null)
-  // CodeMirror view while in Source Code Mode (for native CM find/replace)
-  const cmViewRef = useRef<EditorView | null>(null)
 
   // Menu action handler from Electron
   useEffect(() => {
@@ -139,7 +137,8 @@ export default function TyporaEditor() {
         case 'list:ordered': ed?.chain().focus().toggleOrderedList().run(); break
         case 'list:task': ed?.chain().focus().toggleTaskList().run(); break
         case 'insert:hr': ed?.chain().focus().setHorizontalRule().run(); break
-        case 'insert:table': ed?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(); break
+        case 'insert:table': insertTable(); break
+        case 'insert:mermaid': insertMermaidDiagram(); break
         case 'insert:codeBlock': ed?.chain().focus().toggleCodeBlock().run(); break
         case 'insert:snippet': openSnippetModal(); break
         case 'insert:link': {
@@ -147,11 +146,7 @@ export default function TyporaEditor() {
           if (url) ed?.chain().focus().setLink({ href: url }).run()
           break
         }
-        case 'insert:image': {
-          const src = window.prompt('Enter image URL or file path:')
-          if (src) ed?.chain().focus().setImage({ src }).run()
-          break
-        }
+        case 'insert:image': insertImageFromPicker(); break
         case 'insert:math': ed?.chain().focus().insertContent({ type: 'mathBlock', attrs: { latex: '' } }).run(); break
         case 'heading:1': ed?.chain().focus().toggleHeading({ level: 1 }).run(); break
         case 'heading:2': ed?.chain().focus().toggleHeading({ level: 2 }).run(); break
@@ -190,7 +185,7 @@ export default function TyporaEditor() {
       TableCell,
       TableHeader,
       Link.configure({ openOnClick: false, autolink: true }),
-      Image,
+      Image.configure({ allowBase64: true }),
       Placeholder.configure({ placeholder: 'Start writing… (Markdown is supported)' }),
       Typography,
       Focus.configure({ className: 'has-focus', mode: 'deepest' }),
@@ -290,7 +285,7 @@ export default function TyporaEditor() {
   // Source Code Mode uses CodeMirror's built-in search panel
   useEffect(() => {
     if (!isSourceMode) return
-    const view = cmViewRef.current
+    const view = sourceEditorInstance.current
     if (!view) return
     try {
       if (isFindOpen) openSearchPanel(view)
@@ -327,7 +322,6 @@ export default function TyporaEditor() {
           <SourceCodeEditor
             initialContent={rawMarkdown}
             onChange={(content) => updateMarkdown(content)}
-            cmViewRef={cmViewRef}
           />
         ) : (
           <>

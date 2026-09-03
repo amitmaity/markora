@@ -5,15 +5,14 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorState } from '@codemirror/state'
 import { openSearchPanel, closeSearchPanel, searchPanelOpen } from '@codemirror/search'
 import { useEditorStore } from '../../store/editorStore'
+import { sourceEditorInstance } from '../../services/editorInstance'
 
 interface Props {
   initialContent: string
   onChange: (content: string) => void
-  /** Receives the CodeMirror view so the parent can drive its search panel */
-  cmViewRef?: React.MutableRefObject<EditorView | null>
 }
 
-export default function SourceCodeEditor({ initialContent, onChange, cmViewRef }: Props) {
+export default function SourceCodeEditor({ initialContent, onChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const { activeTheme } = useEditorStore()
@@ -75,7 +74,7 @@ export default function SourceCodeEditor({ initialContent, onChange, cmViewRef }
     })
 
     viewRef.current = view
-    if (cmViewRef) cmViewRef.current = view
+    sourceEditorInstance.current = view
 
     // Reopen the find panel if find was active when this editor mounted
     if (useEditorStore.getState().isFindOpen) {
@@ -94,7 +93,7 @@ export default function SourceCodeEditor({ initialContent, onChange, cmViewRef }
       }
       view.destroy()
       viewRef.current = null
-      if (cmViewRef && cmViewRef.current === view) cmViewRef.current = null
+      if (sourceEditorInstance.current === view) sourceEditorInstance.current = null
     }
   }, [isDark]) // re-create when theme changes between dark/light
 

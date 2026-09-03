@@ -23,6 +23,7 @@ export interface ElectronAPI {
   openFileDialog(): Promise<OpenedFile | null>
   saveFileDialog(defaultName: string, content: string): Promise<string | null>
   openFolderDialog(): Promise<string | null>
+  openImageDialog(): Promise<{ path: string; name: string; dataUrl: string } | null>
   saveHtmlDialog(content: string): Promise<string | null>
   savePdfDialog(defaultName: string): Promise<string | null>
 
@@ -59,6 +60,7 @@ const api: ElectronAPI = {
   saveFileDialog: (defaultName, content) =>
     ipcRenderer.invoke('dialog:saveFile', defaultName, content),
   openFolderDialog: () => ipcRenderer.invoke('dialog:openFolder'),
+  openImageDialog: () => ipcRenderer.invoke('dialog:openImage'),
   saveHtmlDialog: (content) => ipcRenderer.invoke('dialog:saveHtml', content),
   savePdfDialog: (defaultName) => ipcRenderer.invoke('dialog:savePdf', defaultName),
 

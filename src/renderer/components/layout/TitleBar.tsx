@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useEditorStore } from '../../store/editorStore'
-import { PanelLeft, Palette, Code, AlignCenter, Check, ChevronDown, CodeXml } from 'lucide-react'
+import { PanelLeft, Palette, Code, AlignCenter, Check, ChevronDown, CodeXml, Table, Workflow, Image as ImageIcon } from 'lucide-react'
 import { THEME_LABELS, ALL_THEMES } from '../../themes/themeManager'
+import { insertTable, insertMermaidDiagram, insertImageFromPicker } from '../../services/insertions'
 import appIcon from '../../assets/icon.png'
 
 export default function TitleBar() {
@@ -111,11 +112,35 @@ export default function TitleBar() {
         </button>
         <button
           type="button"
+          onClick={insertImageFromPicker}
+          className="p-1.5 rounded hover:bg-black/10 transition-colors cursor-pointer"
+          title="Insert Image"
+        >
+          <ImageIcon size={14} style={{ color: 'var(--chrome-text)' }} />
+        </button>
+        <button
+          type="button"
           onClick={openSnippetModal}
           className="p-1.5 rounded hover:bg-black/10 transition-colors cursor-pointer"
           title="Insert Code Snippet (⌘⌥C)"
         >
           <CodeXml size={14} style={{ color: 'var(--chrome-text)' }} />
+        </button>
+        <button
+          type="button"
+          onClick={() => insertTable()}
+          className="p-1.5 rounded hover:bg-black/10 transition-colors cursor-pointer"
+          title="Insert Table (⌘⇧T)"
+        >
+          <Table size={14} style={{ color: 'var(--chrome-text)' }} />
+        </button>
+        <button
+          type="button"
+          onClick={insertMermaidDiagram}
+          className="p-1.5 rounded hover:bg-black/10 transition-colors cursor-pointer"
+          title="Insert Mermaid Diagram (⌘⌥M)"
+        >
+          <Workflow size={14} style={{ color: 'var(--chrome-text)' }} />
         </button>
 
         {/* Theme picker */}
