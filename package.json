@@ -2,6 +2,7 @@
   "name": "markora",
   "version": "1.0.1",
   "description": "Markora — A seamless, distraction-free markdown editor built with Electron, React, and TipTap",
+  "author": "Amit Maity",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
