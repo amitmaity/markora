@@ -1,6 +1,6 @@
 {
   "name": "markora",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Markora — A seamless, distraction-free markdown editor built with Electron, React, and TipTap",
   "main": "./out/main/index.js",
   "scripts": {
