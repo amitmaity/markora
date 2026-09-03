@@ -106,6 +106,11 @@
     "directories": {
       "output": "release"
     },
+    "publish": {
+      "provider": "github",
+      "owner": "amitmaity",
+      "repo": "markora"
+    },
     "files": [
       "out/**/*"
     ],
