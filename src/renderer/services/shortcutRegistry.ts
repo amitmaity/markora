@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useEditorStore } from '../store/editorStore'
-import { saveFile, saveFileAs, openFile } from './fileService'
+import { saveFile, saveFileAs, openFile, closeTabWithConfirm } from './fileService'
 import { insertTable } from './insertions'
-import type { Editor } from '@tiptap/core'
+import { editorInstance } from './editorInstance'
 
 type ShortcutHandler = (e: KeyboardEvent) => void
 
@@ -24,13 +24,43 @@ function matchShortcut(
   )
 }
 
-export function useShortcuts(editorRef: React.MutableRefObject<Editor | null>): void {
+function matchModShiftCode(e: KeyboardEvent, code: string): boolean {
+  return e.code === code && mod(e) && e.shiftKey && !e.altKey
+}
+
+export function useShortcuts(): void {
   useEffect(() => {
     const handler: ShortcutHandler = async (e) => {
-      const editor = editorRef.current
-      // Read the store fresh per keystroke instead of subscribing (the
-      // state object identity changes on every update)
+      const editor = editorInstance.current
       const store = useEditorStore.getState()
+
+      // --- Tabs ---
+      if (matchShortcut(e, { key: 't', mod: true })) {
+        e.preventDefault()
+        store.newTab()
+        return
+      }
+      if (matchShortcut(e, { key: 'w', mod: true })) {
+        e.preventDefault()
+        closeTabWithConfirm()
+        return
+      }
+      if (e.key === 'Tab' && e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault()
+        if (e.shiftKey) store.prevTab()
+        else store.nextTab()
+        return
+      }
+      if (matchModShiftCode(e, 'BracketRight')) {
+        e.preventDefault()
+        store.nextTab()
+        return
+      }
+      if (matchModShiftCode(e, 'BracketLeft')) {
+        e.preventDefault()
+        store.prevTab()
+        return
+      }
 
       // --- File ---
       if (matchShortcut(e, { key: 's', mod: true })) {
@@ -50,7 +80,7 @@ export function useShortcuts(editorRef: React.MutableRefObject<Editor | null>): 
       }
       if (matchShortcut(e, { key: 'n', mod: true })) {
         e.preventDefault()
-        store.setDocument(null, '')
+        store.newTab()
         return
       }
 
@@ -122,11 +152,37 @@ export function useShortcuts(editorRef: React.MutableRefObject<Editor | null>): 
         return
       }
 
+      if (matchModShiftCode(e, 'Digit8')) {
+        e.preventDefault()
+        editor.chain().focus().toggleBulletList().run()
+        return
+      }
+      if (matchModShiftCode(e, 'Digit7')) {
+        e.preventDefault()
+        editor.chain().focus().toggleOrderedList().run()
+        return
+      }
+      if (matchModShiftCode(e, 'Digit9')) {
+        e.preventDefault()
+        editor.chain().focus().toggleTaskList().run()
+        return
+      }
+      if (matchShortcut(e, { key: 'q', mod: true, shift: true })) {
+        e.preventDefault()
+        editor.chain().focus().toggleBlockquote().run()
+        return
+      }
+      if (e.code === 'Minus' && mod(e) && e.altKey && !e.shiftKey) {
+        e.preventDefault()
+        editor.chain().focus().setHorizontalRule().run()
+        return
+      }
+
       // --- Headings ---
       for (let i = 1; i <= 6; i++) {
         if (matchShortcut(e, { key: `${i}`, mod: true })) {
           e.preventDefault()
-          editor.chain().focus().toggleHeading({ level: i as 1|2|3|4|5|6 }).run()
+          editor.chain().focus().toggleHeading({ level: i as 1 | 2 | 3 | 4 | 5 | 6 }).run()
           return
         }
       }
@@ -151,5 +207,5 @@ export function useShortcuts(editorRef: React.MutableRefObject<Editor | null>): 
 
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [editorRef])
+  }, [])
 }

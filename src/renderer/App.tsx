@@ -3,7 +3,7 @@ import { useEditorStore } from './store/editorStore'
 import AppLayout from './components/layout/AppLayout'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import { applyTheme, getStoredTheme } from './themes/themeManager'
-import { confirmDiscardChanges } from './services/fileService'
+import { confirmAnyUnsaved } from './services/fileService'
 import type { FileEntry } from './types/editor'
 
 // Theme CSS imports
@@ -37,8 +37,7 @@ export default function App() {
 
     // File opened from menu, recent list, or drag
     const offFile = window.electronAPI.onFileOpened(async ({ path, content }) => {
-      if (!confirmDiscardChanges('Open the selected file and discard them')) return
-      useEditorStore.getState().setDocument(path, content)
+      useEditorStore.getState().openTab(path, content)
     })
 
     // Folder opened from menu
@@ -54,18 +53,11 @@ export default function App() {
 
     // Before close — check for dirty state
     const offClose = window.electronAPI.onBeforeClose(() => {
-      const { isDirty } = useEditorStore.getState()
-      if (!isDirty) {
-        window.electronAPI.confirmClose()
+      if (!confirmAnyUnsaved()) {
+        window.electronAPI.cancelClose()
         return
       }
-      // Show native confirm dialog
-      const choice = window.confirm('You have unsaved changes. Close without saving?')
-      if (choice) {
-        window.electronAPI.confirmClose()
-      } else {
-        window.electronAPI.cancelClose()
-      }
+      window.electronAPI.confirmClose()
     })
 
     return () => {

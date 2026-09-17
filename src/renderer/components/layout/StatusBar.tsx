@@ -1,10 +1,11 @@
 import React from 'react'
-import { useEditorStore } from '../../store/editorStore'
+import { useEditorStore, useActiveTab } from '../../store/editorStore'
 import { Palette } from 'lucide-react'
 import { ALL_THEMES, THEME_LABELS } from '../../themes/themeManager'
 
 export default function StatusBar() {
-  const { stats, isSourceMode, isFocusMode, isTypewriterMode, filePath, activeTheme, setTheme } = useEditorStore()
+  const { isSourceMode, isFocusMode, isTypewriterMode, activeTheme, setTheme } = useEditorStore()
+  const { stats, filePath } = useActiveTab()
   const { wordCount, charCount, lineCount, readingTime } = stats
 
   const cycleTheme = () => {

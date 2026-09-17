@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { useEditorStore } from '../../store/editorStore'
+import { useEditorStore, useActiveTab } from '../../store/editorStore'
 import { PanelLeft, Palette, Code, AlignCenter, Check, ChevronDown, CodeXml, Table, Workflow, Image as ImageIcon } from 'lucide-react'
 import { THEME_LABELS, ALL_THEMES } from '../../themes/themeManager'
 import { insertTable, insertMermaidDiagram, insertImageFromPicker } from '../../services/insertions'
@@ -7,8 +7,6 @@ import appIcon from '../../assets/icon.png'
 
 export default function TitleBar() {
   const {
-    fileName,
-    isDirty,
     isSourceMode,
     isFocusMode,
     isTypewriterMode,
@@ -20,16 +18,24 @@ export default function TitleBar() {
     setTheme,
     openSnippetModal
   } = useEditorStore()
+  const { fileName, isDirty } = useActiveTab()
 
   const [platform, setPlatform] = useState<string>('darwin')
   const [showThemeMenu, setShowThemeMenu] = useState(false)
   const themeMenuRef = useRef<HTMLDivElement>(null)
+
+  const isMac = platform === 'darwin'
+  const title = `${isDirty ? '● ' : ''}${fileName} — Markora`
 
   useEffect(() => {
     if (window.electronAPI) {
       window.electronAPI.getPlatform().then(setPlatform)
     }
   }, [])
+
+  useEffect(() => {
+    window.electronAPI?.setTitle(title)
+  }, [title])
 
   // Close theme menu when clicking outside
   useEffect(() => {
@@ -42,9 +48,6 @@ export default function TitleBar() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showThemeMenu])
-
-  const isMac = platform === 'darwin'
-  const title = `${isDirty ? '● ' : ''}${fileName} — Markora`
 
   return (
     <div

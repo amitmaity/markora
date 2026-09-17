@@ -1,10 +1,11 @@
-import { useEditorStore } from '../store/editorStore'
+import { useEditorStore, getActiveTab, hasUnsavedTabs } from '../store/editorStore'
 import type { FileEntry } from '../types/editor'
 
 const api = () => window.electronAPI
 
-function baseName(p: string): string {
-  return p.split(/[\\/]/).pop() ?? p
+export function syncWindowTitle(): void {
+  const tab = getActiveTab()
+  api()?.setTitle(`${tab.isDirty ? '● ' : ''}${tab.fileName} — Markora`)
 }
 
 /**
@@ -12,17 +13,27 @@ function baseName(p: string): string {
  * (no unsaved changes, or the user confirmed discarding them).
  */
 export function confirmDiscardChanges(action: string): boolean {
-  const { isDirty } = useEditorStore.getState()
-  if (!isDirty) return true
-  return window.confirm(`You have unsaved changes. ${action}?`)
+  const tab = getActiveTab()
+  if (!tab.isDirty) return true
+  return window.confirm(`You have unsaved changes in "${tab.fileName}". ${action}?`)
+}
+
+export function confirmAnyUnsaved(): boolean {
+  if (!hasUnsavedTabs()) return true
+  const dirty = useEditorStore.getState().tabs.filter((tab) => tab.isDirty)
+  if (dirty.length === 1) {
+    return window.confirm(`You have unsaved changes in "${dirty[0].fileName}". Close without saving?`)
+  }
+  return window.confirm(
+    `You have unsaved changes in ${dirty.length} documents. Close without saving?`
+  )
 }
 
 export async function openFile(): Promise<void> {
   const result = await api().openFileDialog()
   if (!result) return
-  if (!confirmDiscardChanges('Open the selected file and discard them')) return
-  useEditorStore.getState().setDocument(result.path, result.content)
-  api().setTitle(`${baseName(result.path)} — Markora`)
+  useEditorStore.getState().openTab(result.path, result.content)
+  syncWindowTitle()
 }
 
 export async function openFolder(): Promise<void> {
@@ -33,23 +44,27 @@ export async function openFolder(): Promise<void> {
 }
 
 export async function saveFile(): Promise<void> {
-  const { filePath, rawMarkdown, markSaved, fileName } = useEditorStore.getState()
-  if (filePath) {
-    await api().writeFile(filePath, rawMarkdown)
-    markSaved()
-    api().setTitle(`${fileName} — Markora`)
+  const tab = getActiveTab()
+  const { markTabSaved } = useEditorStore.getState()
+  if (tab.filePath) {
+    await api().writeFile(tab.filePath, tab.rawMarkdown)
+    markTabSaved(tab.id)
+    syncWindowTitle()
   } else {
     await saveFileAs()
   }
 }
 
 export async function saveFileAs(): Promise<void> {
-  const { rawMarkdown, setDocument, fileName } = useEditorStore.getState()
-  const savedPath = await api().saveFileDialog(fileName.endsWith('.md') ? fileName : `${fileName}.md`, rawMarkdown)
+  const tab = getActiveTab()
+  const { setTabDocument } = useEditorStore.getState()
+  const savedPath = await api().saveFileDialog(
+    tab.fileName.endsWith('.md') ? tab.fileName : `${tab.fileName}.md`,
+    tab.rawMarkdown
+  )
   if (!savedPath) return
-  setDocument(savedPath, rawMarkdown)
-  useEditorStore.getState().markSaved()
-  api().setTitle(`${baseName(savedPath)} — Markora`)
+  setTabDocument(tab.id, savedPath, tab.rawMarkdown)
+  syncWindowTitle()
 }
 
 export async function readFileByPath(filePath: string): Promise<string> {
@@ -57,13 +72,58 @@ export async function readFileByPath(filePath: string): Promise<string> {
 }
 
 export async function openFileByPath(filePath: string): Promise<void> {
-  if (!confirmDiscardChanges('Open the selected file and discard them')) return
   const content = await api().readFile(filePath)
-  useEditorStore.getState().setDocument(filePath, content)
-  api().setTitle(`${baseName(filePath)} — Markora`)
+  useEditorStore.getState().openTab(filePath, content)
+  syncWindowTitle()
 }
 
 export async function refreshDirectory(dirPath: string): Promise<void> {
   const tree = await api().readDir(dirPath)
   useEditorStore.getState().setFileTree(tree as FileEntry[])
+}
+
+export function closeTabWithConfirm(id?: string): boolean {
+  const state = useEditorStore.getState()
+  const tab = id ? state.tabs.find((t) => t.id === id) : getActiveTab()
+  if (!tab) return false
+  if (tab.isDirty) {
+    const ok = window.confirm(`You have unsaved changes in "${tab.fileName}". Close this tab?`)
+    if (!ok) return false
+  }
+  state.closeTab(tab.id)
+  syncWindowTitle()
+  return true
+}
+
+export function closeOtherTabsWithConfirm(keepId: string): boolean {
+  const state = useEditorStore.getState()
+  const others = state.tabs.filter((tab) => tab.id !== keepId)
+  const dirty = others.filter((tab) => tab.isDirty)
+  if (dirty.length > 0) {
+    const ok = window.confirm(
+      dirty.length === 1
+        ? `You have unsaved changes in "${dirty[0].fileName}". Close it?`
+        : `You have unsaved changes in ${dirty.length} other documents. Close them?`
+    )
+    if (!ok) return false
+  }
+  state.closeOtherTabs(keepId)
+  syncWindowTitle()
+  return true
+}
+
+export function closeAllTabsWithConfirm(): boolean {
+  const state = useEditorStore.getState()
+  const dirty = state.tabs.filter((tab) => tab.isDirty)
+  if (dirty.length > 0) {
+    const ok = window.confirm(
+      dirty.length === 1
+        ? `You have unsaved changes in "${dirty[0].fileName}". Close it?`
+        : `You have unsaved changes in ${dirty.length} documents. Close them?`
+    )
+    if (!ok) return false
+  }
+  state.closeAllTabs()
+  syncWindowTitle()
+  return true
 }

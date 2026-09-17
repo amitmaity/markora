@@ -6,7 +6,7 @@ import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen, Plus, RefreshC
 
 function FileNode({ entry, depth = 0 }: { entry: FileEntry; depth?: number }) {
   const [expanded, setExpanded] = useState(depth < 1)
-  const { filePath } = useEditorStore()
+  const filePath = useEditorStore((s) => s.tabs.find((t) => t.id === s.activeTabId)?.filePath)
   const isActive = filePath === entry.path
   const openable = ['md', 'markdown', 'txt'].includes(entry.extension ?? '')
 

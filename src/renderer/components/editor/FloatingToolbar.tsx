@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import type { Editor } from '@tiptap/core'
 import {
   Bold, Italic, Strikethrough, Code, CodeXml, Link as LinkIcon, Underline as UnderlineIcon, Highlighter,
-  Heading1, Heading2, Heading3
+  Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Minus, RemoveFormatting
 } from 'lucide-react'
 
 interface Props {
@@ -29,9 +29,12 @@ export default function FloatingToolbar({ editor }: Props) {
       try {
         const start = view.coordsAtPos(from)
         const end = view.coordsAtPos(to)
-        const menuWidth = menuRef.current?.offsetWidth || 340
+        const menuWidth = menuRef.current?.offsetWidth || 560
         const top = Math.max(10, start.top - 46)
-        const left = Math.max(10, (start.left + end.left) / 2 - menuWidth / 2)
+        const left = Math.min(
+          Math.max(10, (start.left + end.left) / 2 - menuWidth / 2),
+          window.innerWidth - menuWidth - 10
+        )
         setCoords({ top, left })
       } catch {
         setCoords(null)
@@ -44,7 +47,6 @@ export default function FloatingToolbar({ editor }: Props) {
     editor.on('transaction', updateMenu)
     editor.on('blur', onBlur)
 
-    // Reposition while the editor scroll container scrolls
     const scroller = editor.view.dom.closest('.editor-content')
     scroller?.addEventListener('scroll', updateMenu)
 
@@ -88,6 +90,10 @@ export default function FloatingToolbar({ editor }: Props) {
     </button>
   )
 
+  const divider = (
+    <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.2)', margin: '0 2px' }} />
+  )
+
   return (
     <div
       ref={menuRef}
@@ -116,13 +122,27 @@ export default function FloatingToolbar({ editor }: Props) {
       {btn(<CodeXml size={13} />, () => editor.chain().focus().toggleCodeBlock().run(), editor.isActive('codeBlock'), 'Code Block (⌘⌥C)')}
       {btn(<Highlighter size={13} />, () => editor.chain().focus().toggleHighlight().run(), editor.isActive('highlight'), 'Highlight (⌘⇧H)')}
 
-      <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.2)', margin: '0 2px' }} />
+      {divider}
 
       {btn(<Heading1 size={13} />, () => editor.chain().focus().toggleHeading({ level: 1 }).run(), editor.isActive('heading', { level: 1 }), 'Heading 1')}
       {btn(<Heading2 size={13} />, () => editor.chain().focus().toggleHeading({ level: 2 }).run(), editor.isActive('heading', { level: 2 }), 'Heading 2')}
       {btn(<Heading3 size={13} />, () => editor.chain().focus().toggleHeading({ level: 3 }).run(), editor.isActive('heading', { level: 3 }), 'Heading 3')}
 
-      <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.2)', margin: '0 2px' }} />
+      {divider}
+
+      {btn(<List size={13} />, () => editor.chain().focus().toggleBulletList().run(), editor.isActive('bulletList'), 'Bullet List (⌘⇧8)')}
+      {btn(<ListOrdered size={13} />, () => editor.chain().focus().toggleOrderedList().run(), editor.isActive('orderedList'), 'Ordered List (⌘⇧7)')}
+      {btn(<ListChecks size={13} />, () => editor.chain().focus().toggleTaskList().run(), editor.isActive('taskList'), 'Task List (⌘⇧9)')}
+      {btn(<Quote size={13} />, () => editor.chain().focus().toggleBlockquote().run(), editor.isActive('blockquote'), 'Block Quote (⌘⇧Q)')}
+      {btn(<Minus size={13} />, () => editor.chain().focus().setHorizontalRule().run(), false, 'Horizontal Rule')}
+      {btn(
+        <RemoveFormatting size={13} />,
+        () => editor.chain().focus().unsetAllMarks().clearNodes().run(),
+        false,
+        'Clear Formatting'
+      )}
+
+      {divider}
 
       {btn(
         <LinkIcon size={13} />,

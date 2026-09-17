@@ -223,6 +223,11 @@ function buildMenu(win: BrowserWindow | null): void {
           click: () => send('file:new')
         },
         {
+          label: 'New Tab',
+          accelerator: 'CmdOrCtrl+T',
+          click: () => send('tab:new')
+        },
+        {
           label: 'Open File…',
           accelerator: 'CmdOrCtrl+O',
           click: async () => {
@@ -277,7 +282,14 @@ function buildMenu(win: BrowserWindow | null): void {
           click: () => send('export:html')
         },
         { type: 'separator' },
-        isMac ? { role: 'close' as const } : { role: 'quit' as const }
+        {
+          label: 'Close Tab',
+          accelerator: 'CmdOrCtrl+W',
+          click: () => send('tab:close')
+        },
+        isMac
+          ? { label: 'Close Window', accelerator: 'CmdOrCtrl+Shift+W', role: 'close' as const }
+          : { role: 'quit' as const }
       ]
     },
 
@@ -324,6 +336,16 @@ function buildMenu(win: BrowserWindow | null): void {
           label: 'Toggle Sidebar',
           accelerator: 'CmdOrCtrl+`',
           click: () => send('sidebar:toggle')
+        },
+        {
+          label: 'Next Tab',
+          accelerator: 'Control+Tab',
+          click: () => send('tab:next')
+        },
+        {
+          label: 'Previous Tab',
+          accelerator: 'Control+Shift+Tab',
+          click: () => send('tab:prev')
         },
         {
           id: 'focus-mode',
@@ -411,11 +433,12 @@ function buildMenu(win: BrowserWindow | null): void {
         { label: 'Normal Text', accelerator: 'CmdOrCtrl+0', click: () => send('heading:0') },
         { type: 'separator' as const },
         { label: 'Code Fences', click: () => send('insert:snippet') },
-        { label: 'Bullet List', click: () => send('list:bullet') },
-        { label: 'Ordered List', click: () => send('list:ordered') },
-        { label: 'Task List', click: () => send('list:task') },
-        { label: 'Block Quote', click: () => send('format:blockquote') },
-        { label: 'Horizontal Rule', click: () => send('insert:hr') }
+        { label: 'Bullet List', accelerator: 'CmdOrCtrl+Shift+8', click: () => send('list:bullet') },
+        { label: 'Ordered List', accelerator: 'CmdOrCtrl+Shift+7', click: () => send('list:ordered') },
+        { label: 'Task List', accelerator: 'CmdOrCtrl+Shift+9', click: () => send('list:task') },
+        { label: 'Block Quote', accelerator: 'CmdOrCtrl+Shift+Q', click: () => send('format:blockquote') },
+        { label: 'Horizontal Rule', accelerator: 'CmdOrCtrl+Alt+-', click: () => send('insert:hr') },
+        { label: 'Clear Formatting', click: () => send('format:clear') }
       ]
     },
 
@@ -733,7 +756,7 @@ app.whenReady().then(() => {
   if (process.platform === 'darwin') {
     app.setAboutPanelOptions({
       applicationName: 'Markora',
-      applicationVersion: '1.0.0',
+      applicationVersion: app.getVersion(),
       copyright: '© Markora',
       credits: 'A seamless, distraction-free markdown editor'
     })

@@ -268,10 +268,13 @@ function escapeHtml(str: string): string {
 }
 
 /**
- * Extracts and cleans HTML content from the active ProseMirror editor DOM.
+ * Extracts and cleans HTML content from the given ProseMirror editor DOM.
  */
 export function getCleanDocumentHtml(editor: any): string {
-  const el = document.querySelector('.editor-content .ProseMirror')
+  // Scope to this editor's own DOM node. With keep-alive multi-tab, a
+  // document-level querySelector('.editor-content .ProseMirror') could
+  // return an inactive tab's editor and export the wrong document.
+  const el = editor?.view?.dom as HTMLElement | undefined
   if (!el) {
     return editor?.getHTML() ?? ''
   }

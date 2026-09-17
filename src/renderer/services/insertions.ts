@@ -1,4 +1,4 @@
-import { useEditorStore } from '../store/editorStore'
+import { useEditorStore, getActiveTab } from '../store/editorStore'
 import { editorInstance, sourceEditorInstance } from './editorInstance'
 
 export const MERMAID_TEMPLATE = 'graph TD\n    A[Start] --> B[End]'
@@ -14,9 +14,11 @@ function insertIntoSourceMode(markdown: string): void {
     view.focus()
     return
   }
-  // No live CodeMirror view — fall back to appending via the store
-  const { rawMarkdown, updateMarkdown } = useEditorStore.getState()
-  updateMarkdown(rawMarkdown ? `${rawMarkdown}\n${markdown}` : markdown)
+  const tab = getActiveTab()
+  useEditorStore.getState().updateTabMarkdown(
+    tab.id,
+    tab.rawMarkdown ? `${tab.rawMarkdown}\n${markdown}` : markdown
+  )
 }
 
 function sanitizeCount(value: number, fallback: number): number {

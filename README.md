@@ -7,6 +7,7 @@ Built with Electron, React, and TipTap.
 ## Features
 
 - **Live markdown** — headings, lists, tables, task lists, code blocks, images, and links as you type
+- **Tabs** — open several documents at once, drag to reorder, and close with a prompt if unsaved
 - **Source mode** — CodeMirror editor for the raw `.md` file
 - **Workspace** — open a folder, browse the file tree, jump headings in the outline, search files by name
 - **Math** — KaTeX blocks via **Format → Insert Math**
@@ -60,6 +61,8 @@ Pushing a `v*` tag (for example `v1.0.3`) runs `.github/workflows/release.yml`, 
 | Action | Shortcut |
 | --- | --- |
 | New / Open / Save / Save As | `⌘N` / `⌘O` / `⌘S` / `⌘⇧S` |
+| New tab / Close tab | `⌘T` / `⌘W` |
+| Next / previous tab | `Ctrl+Tab` / `Ctrl+Shift+Tab` |
 | Find / Find and replace | `⌘F` / `⌘H` |
 | Toggle sidebar | `⌘\`` |
 | Source mode | `⌘/` |
@@ -69,6 +72,7 @@ Pushing a `v*` tag (for example `v1.0.3`) runs `.github/workflows/release.yml`, 
 | Strikethrough / Highlight | `⌘⇧X` / `⌘⇧H` |
 | Inline code | `⌘E` |
 | Headings 1–6 / paragraph | `⌘1`–`⌘6` / `⌘0` |
+| Bullet / numbered / task list | `⌘⇧8` / `⌘⇧7` / `⌘⇧9` |
 | Insert table | `⌘⇧T` |
 | Insert code snippet | `⌘⌥C` or `⌘⇧K` |
 | Insert math | `⌘⇧M` |

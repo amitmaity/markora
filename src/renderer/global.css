@@ -157,11 +157,39 @@ body {
   margin: 1em 0;
 }
 
-/* Lists */
+/* Lists — Tailwind preflight strips list-style from ul/ol, so markers must
+   be re-enabled explicitly (including nested levels). */
 .editor-content .ProseMirror ul,
 .editor-content .ProseMirror ol {
   padding-left: 2em;
   margin: 0.5em 0;
+}
+.editor-content .ProseMirror ul:not([data-type="taskList"]) {
+  list-style-type: disc;
+}
+.editor-content .ProseMirror ul:not([data-type="taskList"]) ul:not([data-type="taskList"]) {
+  list-style-type: circle;
+}
+.editor-content .ProseMirror
+  ul:not([data-type="taskList"])
+  ul:not([data-type="taskList"])
+  ul:not([data-type="taskList"]) {
+  list-style-type: square;
+}
+.editor-content .ProseMirror ol {
+  list-style-type: decimal;
+}
+.editor-content .ProseMirror ol ol {
+  list-style-type: lower-alpha;
+}
+.editor-content .ProseMirror ol ol ol {
+  list-style-type: lower-roman;
+}
+.editor-content .ProseMirror li {
+  display: list-item;
+}
+.editor-content .ProseMirror li::marker {
+  color: var(--text-color, #1f2328);
 }
 .editor-content .ProseMirror li > p {
   margin: 0;
@@ -334,4 +362,43 @@ body {
     page-break-after: avoid;
     break-after: avoid;
   }
+}
+
+/* ===== Tab bar ===== */
+.tabbar-context {
+  min-width: 180px;
+  background: var(--chrome-bg, #fff);
+  color: var(--chrome-text, #333);
+  border: 1px solid var(--chrome-border, #ddd);
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 10000;
+}
+
+.tabbar-context-item {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+
+.tabbar-context-item[data-highlighted] {
+  background: var(--sidebar-active, rgba(0, 0, 0, 0.08));
+}
+
+.tabbar-context-item[data-disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.tabbar-context-separator {
+  height: 1px;
+  background: var(--chrome-border, #ddd);
+  margin: 4px 0;
 }

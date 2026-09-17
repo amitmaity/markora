@@ -26,3 +26,14 @@ export interface SearchMatch {
   path: string
   name: string
 }
+
+export interface Tab {
+  id: string
+  filePath: string | null
+  fileName: string
+  rawMarkdown: string
+  savedMarkdown: string
+  isDirty: boolean
+  stats: DocumentStats
+  headings: HeadingItem[]
+}
