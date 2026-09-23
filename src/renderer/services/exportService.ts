@@ -179,7 +179,7 @@ export function buildExportHtml({ contentHtml, title, theme }: ExportOptions): s
     /* Task lists */
     ul[data-type="taskList"] {
       list-style: none;
-      padding-left: 0.2em;
+      padding-left: 0;
     }
 
     ul[data-type="taskList"] li {
@@ -188,8 +188,15 @@ export function buildExportHtml({ contentHtml, title, theme }: ExportOptions): s
       gap: 0.5em;
     }
 
-    ul[data-type="taskList"] li input[type="checkbox"] {
-      margin-top: 4px;
+    ul[data-type="taskList"] li > label {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      height: calc(1.68 * 1em);
+    }
+
+    ul[data-type="taskList"] li > div > p {
+      margin: 0;
     }
 
     /* Tables */

@@ -144,7 +144,9 @@ function createWindow(): BrowserWindow {
     win.webContents.send('app:before-close')
   })
 
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+  // The dev Electron binary is renamed to Markora, so app.isPackaged is true
+  // and is.dev is false. The dev server URL is the reliable signal.
+  if (process.env['ELECTRON_RENDERER_URL']) {
     win.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     win.loadFile(join(__dirname, '../renderer/index.html'))
