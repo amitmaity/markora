@@ -4,7 +4,7 @@ import { Palette } from 'lucide-react'
 import { ALL_THEMES, THEME_LABELS } from '../../themes/themeManager'
 
 export default function StatusBar() {
-  const { isSourceMode, isFocusMode, isTypewriterMode, activeTheme, setTheme } = useEditorStore()
+  const { isSourceMode, isFocusMode, isTypewriterMode, isAutoSaveEnabled, activeTheme, setTheme } = useEditorStore()
   const { stats, filePath } = useActiveTab()
   const { wordCount, charCount, lineCount, readingTime } = stats
 
@@ -46,6 +46,11 @@ export default function StatusBar() {
         {isSourceMode && (
           <span className="px-1.5 py-0.5 rounded text-[11px]" style={{ background: 'rgba(0,0,0,0.1)' }}>
             Source
+          </span>
+        )}
+        {isAutoSaveEnabled && (
+          <span className="px-1.5 py-0.5 rounded text-[11px]" style={{ background: 'rgba(0,0,0,0.1)' }}>
+            Auto Save
           </span>
         )}
 

@@ -16,6 +16,16 @@ Start writing in **Markdown**. All standard formatting is supported.
 
 const EMPTY_STATS: DocumentStats = { wordCount: 0, charCount: 0, lineCount: 0, readingTime: 0 }
 
+const AUTO_SAVE_KEY = 'markora:autoSave'
+
+function loadAutoSaveEnabled(): boolean {
+  try {
+    return localStorage.getItem(AUTO_SAVE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
 interface EditorState {
   tabs: Tab[]
   activeTabId: string
@@ -28,6 +38,7 @@ interface EditorState {
   isSourceMode: boolean
   isFocusMode: boolean
   isTypewriterMode: boolean
+  isAutoSaveEnabled: boolean
   isSidebarVisible: boolean
   sidebarTab: 'files' | 'outline' | 'search'
 
@@ -66,6 +77,7 @@ interface EditorState {
   toggleSourceMode: () => void
   toggleFocusMode: () => void
   toggleTypewriterMode: () => void
+  toggleAutoSave: () => void
   setFocusMode: (value: boolean) => void
   setTypewriterMode: (value: boolean) => void
   toggleSidebar: () => void
@@ -149,6 +161,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   isSourceMode: false,
   isFocusMode: false,
   isTypewriterMode: false,
+  isAutoSaveEnabled: loadAutoSaveEnabled(),
   isSidebarVisible: true,
   sidebarTab: 'files',
 
@@ -321,6 +334,17 @@ export const useEditorStore = create<EditorState>((set) => ({
   toggleFocusMode: () => set((s) => ({ isFocusMode: !s.isFocusMode })),
 
   toggleTypewriterMode: () => set((s) => ({ isTypewriterMode: !s.isTypewriterMode })),
+
+  toggleAutoSave: () =>
+    set((s) => {
+      const enabled = !s.isAutoSaveEnabled
+      try {
+        localStorage.setItem(AUTO_SAVE_KEY, String(enabled))
+      } catch {
+        // ignore
+      }
+      return { isAutoSaveEnabled: enabled }
+    }),
 
   setFocusMode: (value) => set({ isFocusMode: value }),
 

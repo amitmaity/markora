@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useEditorStore } from '../../store/editorStore'
 import { useAppActions } from '../../services/appActions'
+import { initAutoSave } from '../../services/autoSaveService'
 import TitleBar from './TitleBar'
 import TabBar from './TabBar'
 import Sidebar from './Sidebar'
@@ -12,6 +14,8 @@ export default function AppLayout() {
   const activeTabId = useEditorStore((s) => s.activeTabId)
   const tabIds = useEditorStore(useShallow((s) => s.tabs.map((tab) => tab.id)))
   useAppActions()
+
+  useEffect(() => initAutoSave(), [])
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden" style={{ background: 'var(--chrome-bg)' }}>
