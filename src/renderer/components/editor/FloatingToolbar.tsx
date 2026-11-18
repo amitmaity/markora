@@ -1,5 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import type { ReactNode } from 'react'
 import type { Editor } from '@tiptap/core'
+import { insertLinkFromPrompt } from '../../services/insertions'
 import {
   Bold, Italic, Strikethrough, Code, CodeXml, Link as LinkIcon, Underline as UnderlineIcon, Highlighter,
   Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Minus, RemoveFormatting
@@ -61,7 +63,7 @@ export default function FloatingToolbar({ editor }: Props) {
   if (!editor || !coords) return null
 
   const btn = (
-    icon: React.ReactNode,
+    icon: ReactNode,
     action: () => void,
     isActive: boolean,
     title: string
@@ -119,7 +121,7 @@ export default function FloatingToolbar({ editor }: Props) {
       {btn(<UnderlineIcon size={13} />, () => editor.chain().focus().toggleUnderline().run(), editor.isActive('underline'), 'Underline (⌘U)')}
       {btn(<Strikethrough size={13} />, () => editor.chain().focus().toggleStrike().run(), editor.isActive('strike'), 'Strikethrough (⌘⇧X)')}
       {btn(<Code size={13} />, () => editor.chain().focus().toggleCode().run(), editor.isActive('code'), 'Inline Code (⌘E)')}
-      {btn(<CodeXml size={13} />, () => editor.chain().focus().toggleCodeBlock().run(), editor.isActive('codeBlock'), 'Code Block (⌘⌥C)')}
+      {btn(<CodeXml size={13} />, () => editor.chain().focus().toggleCodeBlock().run(), editor.isActive('codeBlock'), 'Code Block (⌘⇧K)')}
       {btn(<Highlighter size={13} />, () => editor.chain().focus().toggleHighlight().run(), editor.isActive('highlight'), 'Highlight (⌘⇧H)')}
 
       {divider}
@@ -144,15 +146,7 @@ export default function FloatingToolbar({ editor }: Props) {
 
       {divider}
 
-      {btn(
-        <LinkIcon size={13} />,
-        () => {
-          const url = window.prompt('Enter URL:')
-          if (url) editor.chain().focus().setLink({ href: url }).run()
-        },
-        editor.isActive('link'),
-        'Link'
-      )}
+      {btn(<LinkIcon size={13} />, () => void insertLinkFromPrompt(), editor.isActive('link'), 'Link (⌘K)')}
     </div>
   )
 }

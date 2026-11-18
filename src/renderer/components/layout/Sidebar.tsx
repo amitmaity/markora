@@ -1,4 +1,3 @@
-import React from 'react'
 import { useEditorStore } from '../../store/editorStore'
 import FileTree from '../sidebar/FileTree'
 import OutlineView from '../sidebar/OutlineView'
@@ -6,7 +5,8 @@ import SearchPanel from '../sidebar/SearchPanel'
 import { Files, List, Search } from 'lucide-react'
 
 export default function Sidebar() {
-  const { sidebarTab, setSidebarTab } = useEditorStore()
+  const sidebarTab = useEditorStore((s) => s.sidebarTab)
+  const setSidebarTab = useEditorStore((s) => s.setSidebarTab)
 
   const tabs = [
     { id: 'files' as const, icon: Files, label: 'Files' },

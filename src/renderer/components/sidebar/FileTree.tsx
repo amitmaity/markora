@@ -1,6 +1,11 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useEditorStore } from '../../store/editorStore'
-import { openFileByPath, openFolder, refreshDirectory } from '../../services/fileService'
+import {
+  openFileByPath,
+  openFolder,
+  refreshDirectory,
+  OPENABLE_EXTENSIONS
+} from '../../services/fileService'
 import type { FileEntry } from '../../types/editor'
 import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen, Plus, RefreshCw } from 'lucide-react'
 
@@ -8,7 +13,7 @@ function FileNode({ entry, depth = 0 }: { entry: FileEntry; depth?: number }) {
   const [expanded, setExpanded] = useState(depth < 1)
   const filePath = useEditorStore((s) => s.tabs.find((t) => t.id === s.activeTabId)?.filePath)
   const isActive = filePath === entry.path
-  const openable = ['md', 'markdown', 'txt'].includes(entry.extension ?? '')
+  const openable = OPENABLE_EXTENSIONS.includes((entry.extension ?? '').toLowerCase())
 
   if (entry.type === 'directory') {
     return (
@@ -56,7 +61,8 @@ function FileNode({ entry, depth = 0 }: { entry: FileEntry; depth?: number }) {
 }
 
 export default function FileTree() {
-  const { workspacePath, fileTree } = useEditorStore()
+  const workspacePath = useEditorStore((s) => s.workspacePath)
+  const fileTree = useEditorStore((s) => s.fileTree)
 
   return (
     <div className="flex flex-col h-full">
@@ -66,7 +72,7 @@ export default function FileTree() {
         style={{ borderColor: 'var(--sidebar-border)' }}
       >
         <span className="text-xs font-medium opacity-60" style={{ color: 'var(--sidebar-text)' }}>
-          {workspacePath ? workspacePath.split('/').pop() : 'No Folder'}
+          {workspacePath ? workspacePath.split(/[\\/]/).filter(Boolean).pop() : 'No Folder'}
         </span>
         <div className="flex gap-1">
           <button

@@ -1,6 +1,7 @@
-import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
+// Bundled (not CDN) so math renders offline
+import 'katex/dist/katex.min.css'
 import './global.css'
 import './themes/github.css'
 import './themes/academic.css'

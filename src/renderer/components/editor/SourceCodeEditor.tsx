@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { EditorView, basicSetup } from 'codemirror'
 import { markdown } from '@codemirror/lang-markdown'
 import { oneDark } from '@codemirror/theme-one-dark'
@@ -15,9 +15,7 @@ interface Props {
 export default function SourceCodeEditor({ initialContent, onChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
-  const { activeTheme } = useEditorStore()
-
-  const isDark = activeTheme === 'night'
+  const isDark = useEditorStore((s) => s.activeTheme === 'night')
 
   useEffect(() => {
     if (!containerRef.current) return

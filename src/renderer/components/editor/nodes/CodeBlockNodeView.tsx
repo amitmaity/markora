@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react'
-import { NodeViewWrapper, NodeViewContent } from '@tiptap/react'
+import { useState, useRef } from 'react'
+import { NodeViewWrapper, NodeViewContent, type NodeViewProps } from '@tiptap/react'
 import { Check, Copy, ChevronDown } from 'lucide-react'
 
 const LANGUAGES = [
@@ -10,26 +10,25 @@ const LANGUAGES = [
   'haskell', 'elixir', 'erlang', 'clojure', 'dart', 'lua', 'vim'
 ]
 
-interface Props {
-  node: { attrs: { language: string | null } }
-  updateAttributes: (attrs: Record<string, unknown>) => void
-  extension: any
-}
-
-export default function CodeBlockNodeView({ node, updateAttributes }: Props) {
+export default function CodeBlockNodeView({ node, updateAttributes }: NodeViewProps) {
   const [copied, setCopied] = useState(false)
   const [showLangMenu, setShowLangMenu] = useState(false)
   const [langSearch, setLangSearch] = useState('')
   const contentRef = useRef<HTMLDivElement>(null)
 
-  const language = node.attrs.language || 'plaintext'
+  const language = (node.attrs.language as string | null) || 'plaintext'
   const filteredLangs = LANGUAGES.filter((l) =>
     l.toLowerCase().includes(langSearch.toLowerCase())
   )
 
   const handleCopy = async () => {
     const text = contentRef.current?.innerText ?? ''
-    await navigator.clipboard.writeText(text)
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch (e) {
+      console.error('Copy failed', e)
+      return
+    }
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }

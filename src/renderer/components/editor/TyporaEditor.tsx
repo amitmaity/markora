@@ -228,8 +228,6 @@ export default function TyporaEditor({ tabId, isActive }: Props) {
             onClose={closeSnippetModal}
             editor={editor}
             isSourceMode={isSourceMode}
-            rawMarkdown={rawMarkdown}
-            updateMarkdown={(md) => useEditorStore.getState().updateTabMarkdown(tabId, md)}
           />
         )}
       </div>

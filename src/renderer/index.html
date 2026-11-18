@@ -3,9 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Documents can come from anywhere: allow only bundled scripts, and
+         images from the web or local files (markdown image links). -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: http: file:; font-src 'self' data:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
     <title>Markora</title>
     <link rel="icon" type="image/png" href="./assets/icon.png" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous" />
   </head>
   <body>
     <div id="root"></div>

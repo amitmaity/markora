@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { X, CodeXml, Check, Sparkles } from 'lucide-react'
 import type { Editor } from '@tiptap/core'
+import { insertIntoSourceMode } from '../../services/insertions'
 
 interface Props {
   isOpen: boolean
   onClose: () => void
   editor: Editor | null
   isSourceMode: boolean
-  rawMarkdown: string
-  updateMarkdown: (md: string) => void
 }
 
 interface SnippetPreset {
@@ -229,9 +228,7 @@ export default function CodeSnippetModal({
   isOpen,
   onClose,
   editor,
-  isSourceMode,
-  rawMarkdown,
-  updateMarkdown
+  isSourceMode
 }: Props) {
   const [language, setLanguage] = useState('javascript')
   const [code, setCode] = useState('')
@@ -259,9 +256,8 @@ export default function CodeSnippetModal({
     const trimmedCode = code
 
     if (isSourceMode) {
-      // In Source Code Mode: Append or insert markdown code block
-      const snippetMd = `\n\`\`\`${lang}\n${trimmedCode}\n\`\`\`\n`
-      updateMarkdown(rawMarkdown ? `${rawMarkdown}\n${snippetMd}` : snippetMd)
+      // In Source Code Mode: insert a fenced block at the cursor
+      insertIntoSourceMode(`\n\`\`\`${lang}\n${trimmedCode}\n\`\`\`\n`)
     } else if (editor) {
       // In TipTap Mode: Insert codeBlock node
       editor

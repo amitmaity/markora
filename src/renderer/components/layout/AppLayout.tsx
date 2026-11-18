@@ -8,6 +8,7 @@ import TabBar from './TabBar'
 import Sidebar from './Sidebar'
 import StatusBar from './StatusBar'
 import TyporaEditor from '../editor/TyporaEditor'
+import TextPromptDialog from '../common/TextPromptDialog'
 
 export default function AppLayout() {
   const isSidebarVisible = useEditorStore((s) => s.isSidebarVisible)
@@ -63,6 +64,8 @@ export default function AppLayout() {
       <div className="no-print">
         <StatusBar />
       </div>
+
+      <TextPromptDialog />
     </div>
   )
 }

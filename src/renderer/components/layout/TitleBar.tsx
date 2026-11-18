@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react'
-import { useEditorStore, useActiveTab } from '../../store/editorStore'
+import { useEffect, useState, useRef } from 'react'
+import { useShallow } from 'zustand/react/shallow'
+import { useEditorStore } from '../../store/editorStore'
 import { PanelLeft, Palette, Code, AlignCenter, Check, ChevronDown, CodeXml, Table, Workflow, Image as ImageIcon, CloudUpload } from 'lucide-react'
 import { THEME_LABELS, ALL_THEMES } from '../../themes/themeManager'
 import { insertTable, insertMermaidDiagram, insertImageFromPicker } from '../../services/insertions'
@@ -19,8 +20,29 @@ export default function TitleBar() {
     activeTheme,
     setTheme,
     openSnippetModal
-  } = useEditorStore()
-  const { fileName, isDirty } = useActiveTab()
+  } = useEditorStore(
+    useShallow((s) => ({
+      isSourceMode: s.isSourceMode,
+      isFocusMode: s.isFocusMode,
+      isTypewriterMode: s.isTypewriterMode,
+      toggleSidebar: s.toggleSidebar,
+      toggleSourceMode: s.toggleSourceMode,
+      toggleFocusMode: s.toggleFocusMode,
+      toggleTypewriterMode: s.toggleTypewriterMode,
+      isAutoSaveEnabled: s.isAutoSaveEnabled,
+      toggleAutoSave: s.toggleAutoSave,
+      activeTheme: s.activeTheme,
+      setTheme: s.setTheme,
+      openSnippetModal: s.openSnippetModal
+    }))
+  )
+  // Only the fields shown here, so typing doesn't re-render the title bar
+  const { fileName, isDirty } = useEditorStore(
+    useShallow((s) => {
+      const tab = s.tabs.find((t) => t.id === s.activeTabId) ?? s.tabs[0]
+      return { fileName: tab.fileName, isDirty: tab.isDirty }
+    })
+  )
 
   const [platform, setPlatform] = useState<string>('darwin')
   const [showThemeMenu, setShowThemeMenu] = useState(false)

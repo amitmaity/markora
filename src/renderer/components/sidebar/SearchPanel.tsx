@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useEditorStore } from '../../store/editorStore'
-import { openFileByPath } from '../../services/fileService'
+import { openFileByPath, OPENABLE_EXTENSIONS } from '../../services/fileService'
 import type { FileEntry } from '../../types/editor'
 import { FileText, Search } from 'lucide-react'
 
@@ -8,7 +8,11 @@ function flattenTree(entries: FileEntry[]): FileEntry[] {
   const result: FileEntry[] = []
   function walk(items: FileEntry[]) {
     for (const item of items) {
-      if (item.type === 'file') result.push(item)
+      // Only documents Markora can edit — opening a binary as text and
+      // saving it would corrupt the file
+      if (item.type === 'file' && OPENABLE_EXTENSIONS.includes((item.extension ?? '').toLowerCase())) {
+        result.push(item)
+      }
       if (item.children) walk(item.children)
     }
   }
@@ -17,7 +21,7 @@ function flattenTree(entries: FileEntry[]): FileEntry[] {
 }
 
 export default function SearchPanel() {
-  const { fileTree } = useEditorStore()
+  const fileTree = useEditorStore((s) => s.fileTree)
   const [query, setQuery] = useState('')
 
   const allFiles = useMemo(() => flattenTree(fileTree), [fileTree])

@@ -1,10 +1,34 @@
 import { useEffect } from 'react'
+import type { Editor } from '@tiptap/core'
 import { useEditorStore, getActiveTab } from '../store/editorStore'
-import { editorInstance } from './editorInstance'
+import { editorInstance, richEditor } from './editorInstance'
 import { useShortcuts } from './shortcutRegistry'
 import { saveFile, saveFileAs, closeTabWithConfirm } from './fileService'
-import { insertTable, insertMermaidDiagram, insertImageFromPicker } from './insertions'
+import {
+  insertTable,
+  insertMermaidDiagram,
+  insertImageFromPicker,
+  insertLinkFromPrompt
+} from './insertions'
 import { exportDocumentToPdf, exportDocumentToHtml } from './exportService'
+
+const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+
+/**
+ * Exports read the rendered TipTap DOM. In Source Code Mode that DOM is
+ * hidden and stale, so switch back to rich mode first and give the editor
+ * (and async node views like Mermaid) a moment to re-render.
+ */
+async function editorForExport(): Promise<Editor | null> {
+  const store = useEditorStore.getState()
+  if (store.isSourceMode) {
+    store.toggleSourceMode()
+    await nextFrame()
+    await nextFrame()
+    await new Promise((resolve) => setTimeout(resolve, 300))
+  }
+  return editorInstance.current
+}
 
 /**
  * Registers global menu-action handlers and keyboard shortcuts once at the
@@ -14,8 +38,10 @@ export function useAppActions(): void {
   useEffect(() => {
     if (!window.electronAPI) return
 
-    const off = window.electronAPI.onMenuAction((action: string) => {
-      const ed = editorInstance.current
+    const off = window.electronAPI.onMenuAction(async (action: string) => {
+      // Null in Source Code Mode — rich-text commands are no-ops there
+      // rather than running on the hidden, stale TipTap document.
+      const ed = richEditor()
       const store = useEditorStore.getState()
       const tab = getActiveTab()
 
@@ -117,11 +143,9 @@ export function useAppActions(): void {
         case 'insert:snippet':
           store.openSnippetModal()
           break
-        case 'insert:link': {
-          const url = window.prompt('Enter URL:')
-          if (url) ed?.chain().focus().setLink({ href: url }).run()
+        case 'insert:link':
+          insertLinkFromPrompt()
           break
-        }
         case 'insert:image':
           insertImageFromPicker()
           break
@@ -150,10 +174,10 @@ export function useAppActions(): void {
           ed?.chain().focus().setParagraph().run()
           break
         case 'export:pdf':
-          exportDocumentToPdf(ed, tab.fileName, store.activeTheme)
+          exportDocumentToPdf(await editorForExport(), tab.fileName, store.activeTheme)
           break
         case 'export:html':
-          exportDocumentToHtml(ed, tab.fileName, store.activeTheme)
+          exportDocumentToHtml(await editorForExport(), tab.fileName, store.activeTheme)
           break
       }
     })

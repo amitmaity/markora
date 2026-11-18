@@ -1,23 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { NodeViewWrapper } from '@tiptap/react'
+import { useState, useRef, useEffect } from 'react'
+import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
 import katex from 'katex'
 
-interface Props {
-  node: { attrs: { latex: string }; type: { name: string } }
-  updateAttributes: (attrs: Record<string, unknown>) => void
-  selected: boolean
-}
-
-export default function MathNodeView({ node, updateAttributes, selected }: Props) {
+export default function MathNodeView({ node, updateAttributes, selected }: NodeViewProps) {
+  const latex = (node.attrs.latex as string | undefined) ?? ''
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(node.attrs.latex)
+  const [draft, setDraft] = useState(latex)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  // Set when Escape cancels, so the blur that follows doesn't save
+  const cancelledRef = useRef(false)
   const isBlock = node.type.name === 'mathBlock'
 
   useEffect(() => {
-    setDraft(node.attrs.latex)
-  }, [node.attrs.latex])
+    setDraft(latex)
+  }, [latex])
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -28,7 +25,7 @@ export default function MathNodeView({ node, updateAttributes, selected }: Props
 
   const renderedHtml = (() => {
     try {
-      const html = katex.renderToString(node.attrs.latex || '\\placeholder{}', {
+      const html = katex.renderToString(latex || '\\placeholder{}', {
         displayMode: isBlock,
         throwOnError: true,
         output: 'html'
@@ -39,14 +36,30 @@ export default function MathNodeView({ node, updateAttributes, selected }: Props
     }
   })()
 
+  const startEditing = () => {
+    cancelledRef.current = false
+    setError(null)
+    setEditing(true)
+  }
+
+  const cancelEditing = () => {
+    cancelledRef.current = true
+    setError(null)
+    setDraft(latex)
+    setEditing(false)
+  }
+
   const handleSave = () => {
+    if (cancelledRef.current) return
     try {
       katex.renderToString(draft, { throwOnError: true })
-      updateAttributes({ latex: draft })
-      setError(null)
-    } catch (e: any) {
-      setError(e.message)
+    } catch (e) {
+      // Stay in edit mode so the error is visible and the edit isn't lost
+      setError(e instanceof Error ? e.message : String(e))
+      return
     }
+    updateAttributes({ latex: draft })
+    setError(null)
     setEditing(false)
   }
 
@@ -56,7 +69,7 @@ export default function MathNodeView({ node, updateAttributes, selected }: Props
     <NodeViewWrapper as={Tag} className={`math-node ${isBlock ? 'math-block' : 'math-inline'}`}>
       {!editing ? (
         <Tag
-          onClick={() => setEditing(true)}
+          onClick={startEditing}
           style={{
             cursor: 'pointer',
             display: isBlock ? 'block' : 'inline',
@@ -90,7 +103,7 @@ export default function MathNodeView({ node, updateAttributes, selected }: Props
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave() }
-              if (e.key === 'Escape') { setEditing(false); setDraft(node.attrs.latex) }
+              if (e.key === 'Escape') cancelEditing()
             }}
             onBlur={handleSave}
             rows={isBlock ? 3 : 1}

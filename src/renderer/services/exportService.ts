@@ -1,21 +1,32 @@
 /**
  * Export service for generating standalone publication-ready HTML and PDF documents.
  */
+import { reportError } from './fileService'
 
 interface ExportOptions {
   contentHtml: string
   title: string
   theme: string
+  /**
+   * CSS to embed instead of linking KaTeX from the CDN. Used for PDF export
+   * so math renders without a network connection.
+   */
+  inlineCss?: string
 }
 
-export function buildExportHtml({ contentHtml, title, theme }: ExportOptions): string {
+const KATEX_CDN_LINK =
+  '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">'
+
+export function buildExportHtml({ contentHtml, title, theme, inlineCss }: ExportOptions): string {
+  const katexStyles =
+    inlineCss !== undefined ? `<style>\n${inlineCss.replace(/<\/style/gi, '<\\/style')}\n  </style>` : KATEX_CDN_LINK
   return `<!DOCTYPE html>
-<html lang="en" data-theme="${theme}">
+<html lang="en" data-theme="${escapeHtml(theme)}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title)}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous">
+  ${katexStyles}
   <style>
     /* ===== Print & Export Stylesheet ===== */
     @page {
@@ -275,6 +286,39 @@ function escapeHtml(str: string): string {
 }
 
 /**
+ * KaTeX rules from the app's bundled stylesheet, with font URLs made absolute
+ * (resolved against the sheet, or the page in dev). The main process embeds
+ * those fonts into the PDF export so it needs no network.
+ */
+function collectKatexCss(): string {
+  const parts: string[] = []
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules: CSSRuleList
+    try {
+      rules = sheet.cssRules
+    } catch {
+      continue // cross-origin sheet
+    }
+    const base = sheet.href ?? document.baseURI
+    for (const rule of Array.from(rules)) {
+      const text = rule.cssText
+      if (!/katex/i.test(text)) continue
+      parts.push(
+        text.replace(/url\((["']?)([^"')]+)\1\)/g, (whole, _quote: string, url: string) => {
+          if (/^(?:data|https?|file):/i.test(url)) return whole
+          try {
+            return `url("${new URL(url, base).href}")`
+          } catch {
+            return whole
+          }
+        })
+      )
+    }
+  }
+  return parts.join('\n')
+}
+
+/**
  * Extracts and cleans HTML content from the given ProseMirror editor DOM.
  */
 export function getCleanDocumentHtml(editor: any): string {
@@ -303,29 +347,35 @@ export function getCleanDocumentHtml(editor: any): string {
 /**
  * Handles exporting document to PDF via off-screen background window.
  */
+function exportTitle(fileName: string): string {
+  return (fileName ? fileName.replace(/\.(md|markdown|txt)$/i, '') : 'document').trim() || 'document'
+}
+
 export async function exportDocumentToPdf(editor: any, fileName: string, theme: string): Promise<boolean> {
   if (!window.electronAPI) return false
 
-  const cleanTitle = (fileName ? fileName.replace(/\.md$/, '') : 'document').trim()
-  const defaultPdfName = `${cleanTitle}.pdf`
+  const cleanTitle = exportTitle(fileName)
+  try {
+    const outputPath = await window.electronAPI.savePdfDialog(`${cleanTitle}.pdf`)
+    if (!outputPath) return false
 
-  const outputPath = await window.electronAPI.savePdfDialog(defaultPdfName)
-  if (!outputPath) return false
+    const fullHtml = buildExportHtml({
+      contentHtml: getCleanDocumentHtml(editor),
+      title: cleanTitle,
+      theme,
+      inlineCss: collectKatexCss()
+    })
 
-  const contentHtml = getCleanDocumentHtml(editor)
-  const fullHtml = buildExportHtml({
-    contentHtml,
-    title: cleanTitle,
-    theme
-  })
-
-  await window.electronAPI.exportPdf({
-    outputPath,
-    html: fullHtml,
-    title: cleanTitle
-  })
-
-  return true
+    await window.electronAPI.exportPdf({
+      outputPath,
+      html: fullHtml,
+      title: cleanTitle
+    })
+    return true
+  } catch (e) {
+    reportError('Could not export the PDF.', e)
+    return false
+  }
 }
 
 /**
@@ -334,14 +384,18 @@ export async function exportDocumentToPdf(editor: any, fileName: string, theme: 
 export async function exportDocumentToHtml(editor: any, fileName: string, theme: string): Promise<boolean> {
   if (!window.electronAPI) return false
 
-  const cleanTitle = (fileName ? fileName.replace(/\.md$/, '') : 'document').trim()
-  const contentHtml = getCleanDocumentHtml(editor)
+  const cleanTitle = exportTitle(fileName)
   const fullHtml = buildExportHtml({
-    contentHtml,
+    contentHtml: getCleanDocumentHtml(editor),
     title: cleanTitle,
     theme
   })
 
-  const savedPath = await window.electronAPI.saveHtmlDialog(fullHtml)
-  return savedPath !== null
+  try {
+    const savedPath = await window.electronAPI.saveHtmlDialog(fullHtml)
+    return savedPath !== null
+  } catch (e) {
+    reportError('Could not export the HTML file.', e)
+    return false
+  }
 }

@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 export interface FileEntry {
   name: string
@@ -35,7 +35,12 @@ export interface ElectronAPI {
   getRecentFiles(): Promise<string[]>
   isDark(): Promise<boolean>
 
+  // Absolute path of a File from a drag-and-drop or <input type=file>
+  // (File.path was removed in Electron 32)
+  getPathForFile(file: File): string
+
   // Window control
+  notifyReady(): void
   confirmClose(): void
   cancelClose(): void
   setTitle(title: string): void
@@ -72,7 +77,10 @@ const api: ElectronAPI = {
   getRecentFiles: () => ipcRenderer.invoke('app:recentFiles'),
   isDark: () => ipcRenderer.invoke('app:isDark'),
 
+  getPathForFile: (file) => webUtils.getPathForFile(file),
+
   // Window
+  notifyReady: () => ipcRenderer.send('renderer:ready'),
   confirmClose: () => ipcRenderer.send('app:confirm-close'),
   cancelClose: () => ipcRenderer.send('app:cancel-close'),
   setTitle: (title: string) => ipcRenderer.send('window:setTitle', title),
