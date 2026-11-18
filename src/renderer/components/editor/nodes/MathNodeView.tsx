@@ -11,6 +11,8 @@ export default function MathNodeView({ node, updateAttributes, selected }: NodeV
   // Set when Escape cancels, so the blur that follows doesn't save
   const cancelledRef = useRef(false)
   const isBlock = node.type.name === 'mathBlock'
+  // `$$…$$` inside a paragraph: inline node rendered in display style
+  const displayMode = isBlock || !!node.attrs.display
 
   useEffect(() => {
     setDraft(latex)
@@ -26,7 +28,7 @@ export default function MathNodeView({ node, updateAttributes, selected }: NodeV
   const renderedHtml = (() => {
     try {
       const html = katex.renderToString(latex || '\\placeholder{}', {
-        displayMode: isBlock,
+        displayMode,
         throwOnError: true,
         output: 'html'
       })
@@ -128,7 +130,7 @@ export default function MathNodeView({ node, updateAttributes, selected }: NodeV
                 return (
                   <span
                     dangerouslySetInnerHTML={{
-                      __html: katex.renderToString(draft, { displayMode: isBlock, throwOnError: false })
+                      __html: katex.renderToString(draft, { displayMode, throwOnError: false })
                     }}
                   />
                 )
