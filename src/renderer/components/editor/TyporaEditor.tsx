@@ -20,7 +20,7 @@ import { Markdown } from 'tiptap-markdown'
 import { ReactNodeViewRenderer } from '@tiptap/react'
 import { openSearchPanel, closeSearchPanel } from '@codemirror/search'
 
-import { MathInline, MathBlock } from './extensions/MathExtension'
+import { MathInline, MathBlock, MathAwareText } from './extensions/MathExtension'
 import { MermaidBlock } from './extensions/MermaidExtension'
 import { FindHighlight } from './extensions/FindHighlight'
 import FloatingToolbar from './FloatingToolbar'
@@ -77,6 +77,8 @@ export default function TyporaEditor({ tabId, isActive }: Props) {
     extensions: [
       StarterKit.configure({
         codeBlock: false,
+        // replaced by MathAwareText, which escapes `$` that would read back as math
+        text: false,
         heading: { levels: [1, 2, 3, 4, 5, 6] }
       }),
       Underline,
@@ -104,6 +106,7 @@ export default function TyporaEditor({ tabId, isActive }: Props) {
         transformCopiedText: true,
         transformPastedText: true
       }),
+      MathAwareText,
       MathInline,
       MathBlock,
       MermaidBlock,
