@@ -1,26 +1,24 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { NodeViewWrapper } from '@tiptap/react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
 import mermaid from 'mermaid'
 import { Code, Eye } from 'lucide-react'
 
-// Initialize mermaid once
+// Initialize mermaid once. 'strict' (mermaid's default) sanitizes labels and
+// link targets: diagrams come from markdown files that may not be trusted, and
+// the SVG is injected into a renderer that can read and write files.
 mermaid.initialize({
   startOnLoad: false,
   theme: 'default',
-  securityLevel: 'loose',
+  securityLevel: 'strict',
   fontFamily: 'inherit'
 })
 
 let mermaidIdCounter = 0
 
-interface Props {
-  node: { attrs: { code: string } }
-  updateAttributes: (attrs: Record<string, unknown>) => void
-}
-
-export default function MermaidNodeView({ node, updateAttributes }: Props) {
-  const [editing, setEditing] = useState(node.attrs.code === '')
-  const [draft, setDraft] = useState(node.attrs.code)
+export default function MermaidNodeView({ node, updateAttributes }: NodeViewProps) {
+  const code = (node.attrs.code as string | undefined) ?? ''
+  const [editing, setEditing] = useState(code === '')
+  const [draft, setDraft] = useState(code)
   const [svg, setSvg] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const idRef = useRef(`mermaid-${++mermaidIdCounter}`)
@@ -38,8 +36,8 @@ export default function MermaidNodeView({ node, updateAttributes }: Props) {
   }, [])
 
   useEffect(() => {
-    renderDiagram(node.attrs.code)
-  }, [node.attrs.code])
+    renderDiagram(code)
+  }, [code, renderDiagram])
 
   const handleSave = () => {
     updateAttributes({ code: draft })

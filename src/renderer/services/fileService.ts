@@ -3,6 +3,27 @@ import type { FileEntry } from '../types/editor'
 
 const api = () => window.electronAPI
 
+/** File extensions Markora opens as documents (tree, search, drag-and-drop). */
+export const OPENABLE_EXTENSIONS = ['md', 'markdown', 'txt']
+
+export function isOpenablePath(path: string): boolean {
+  const name = path.split(/[\\/]/).pop() ?? ''
+  const dot = name.lastIndexOf('.')
+  return dot > 0 && OPENABLE_EXTENSIONS.includes(name.slice(dot + 1).toLowerCase())
+}
+
+/** Human-readable message from an IPC error (drops Electron's invoke prefix). */
+export function errorMessage(e: unknown): string {
+  const raw = e instanceof Error ? e.message : String(e)
+  return raw.replace(/^Error invoking remote method '[^']+': (?:Error: )?/, '')
+}
+
+/** Log and show an error to the user. */
+export function reportError(summary: string, e: unknown): void {
+  console.error(summary, e)
+  window.alert(`${summary}\n\n${errorMessage(e)}`)
+}
+
 export function syncWindowTitle(): void {
   const tab = getActiveTab()
   api()?.setTitle(`${tab.isDirty ? '● ' : ''}${tab.fileName} — Markora`)
@@ -30,7 +51,13 @@ export function confirmAnyUnsaved(): boolean {
 }
 
 export async function openFile(): Promise<void> {
-  const result = await api().openFileDialog()
+  let result: Awaited<ReturnType<typeof window.electronAPI.openFileDialog>>
+  try {
+    result = await api().openFileDialog()
+  } catch (e) {
+    reportError('Could not open the file.', e)
+    return
+  }
   if (!result) return
   useEditorStore.getState().openTab(result.path, result.content)
   syncWindowTitle()
@@ -39,32 +66,51 @@ export async function openFile(): Promise<void> {
 export async function openFolder(): Promise<void> {
   const folderPath = await api().openFolderDialog()
   if (!folderPath) return
-  const tree = await api().readDir(folderPath)
-  useEditorStore.getState().setWorkspace(folderPath, tree as FileEntry[])
-}
-
-export async function saveFile(): Promise<void> {
-  const tab = getActiveTab()
-  const { markTabSaved } = useEditorStore.getState()
-  if (tab.filePath) {
-    await api().writeFile(tab.filePath, tab.rawMarkdown)
-    markTabSaved(tab.id)
-    syncWindowTitle()
-  } else {
-    await saveFileAs()
+  try {
+    const tree = await api().readDir(folderPath)
+    useEditorStore.getState().setWorkspace(folderPath, tree as FileEntry[])
+  } catch (e) {
+    reportError('Could not read the folder.', e)
   }
 }
 
-export async function saveFileAs(): Promise<void> {
+/** Save the active tab. Returns true when the document was written. */
+export async function saveFile(): Promise<boolean> {
   const tab = getActiveTab()
-  const { setTabDocument } = useEditorStore.getState()
-  const savedPath = await api().saveFileDialog(
-    tab.fileName.endsWith('.md') ? tab.fileName : `${tab.fileName}.md`,
-    tab.rawMarkdown
-  )
-  if (!savedPath) return
-  setTabDocument(tab.id, savedPath, tab.rawMarkdown)
+  if (!tab.filePath) return saveFileAs()
+
+  // Snapshot what we write: typing during the write must stay dirty.
+  const content = tab.rawMarkdown
+  try {
+    await api().writeFile(tab.filePath, content)
+  } catch (e) {
+    reportError(`Could not save "${tab.fileName}".`, e)
+    return false
+  }
+  useEditorStore.getState().markTabSaved(tab.id, content)
   syncWindowTitle()
+  return true
+}
+
+function defaultSaveName(fileName: string): string {
+  return /\.(md|markdown|txt)$/i.test(fileName) ? fileName : `${fileName}.md`
+}
+
+/** Save the active tab under a new path. Returns true when written. */
+export async function saveFileAs(): Promise<boolean> {
+  const tab = getActiveTab()
+  const content = tab.rawMarkdown
+  let savedPath: string | null
+  try {
+    savedPath = await api().saveFileDialog(defaultSaveName(tab.fileName), content)
+  } catch (e) {
+    reportError(`Could not save "${tab.fileName}".`, e)
+    return false
+  }
+  if (!savedPath) return false
+  useEditorStore.getState().setTabDocument(tab.id, savedPath, content)
+  syncWindowTitle()
+  return true
 }
 
 export async function readFileByPath(filePath: string): Promise<string> {
@@ -72,14 +118,24 @@ export async function readFileByPath(filePath: string): Promise<string> {
 }
 
 export async function openFileByPath(filePath: string): Promise<void> {
-  const content = await api().readFile(filePath)
+  let content: string
+  try {
+    content = await api().readFile(filePath)
+  } catch (e) {
+    reportError(`Could not open "${filePath.split(/[\\/]/).pop() ?? filePath}".`, e)
+    return
+  }
   useEditorStore.getState().openTab(filePath, content)
   syncWindowTitle()
 }
 
 export async function refreshDirectory(dirPath: string): Promise<void> {
-  const tree = await api().readDir(dirPath)
-  useEditorStore.getState().setFileTree(tree as FileEntry[])
+  try {
+    const tree = await api().readDir(dirPath)
+    useEditorStore.getState().setFileTree(tree as FileEntry[])
+  } catch (e) {
+    reportError('Could not read the folder.', e)
+  }
 }
 
 export function closeTabWithConfirm(id?: string): boolean {

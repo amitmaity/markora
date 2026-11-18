@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import type { CSSProperties } from 'react'
 import { X, ChevronUp, ChevronDown, Replace, CaseSensitive, Regex } from 'lucide-react'
 import { useEditorStore } from '../../store/editorStore'
 import type { Editor } from '@tiptap/core'
@@ -80,7 +81,9 @@ function findMatches(editor: Editor, query: string, caseSensitive: boolean, useR
 }
 
 export default function FindReplaceBar({ editor }: Props) {
-  const { isFindOpen, isReplaceOpen, closeFind } = useEditorStore()
+  const isFindOpen = useEditorStore((s) => s.isFindOpen)
+  const isReplaceOpen = useEditorStore((s) => s.isReplaceOpen)
+  const closeFind = useEditorStore((s) => s.closeFind)
   const [query, setQuery] = useState('')
   const [replacement, setReplacement] = useState('')
   const [caseSensitive, setCaseSensitive] = useState(false)
@@ -191,7 +194,9 @@ export default function FindReplaceBar({ editor }: Props) {
     const m = matches[activeIdx]
     const repl = replacementFor(m)
     try {
-      editor.view.dispatch(editor.state.tr.replaceWith(m.from, m.to, editor.state.schema.text(repl)))
+      // insertText (not schema.text) so an empty replacement deletes the
+      // match, and the replacement keeps the surrounding formatting
+      editor.view.dispatch(editor.state.tr.insertText(repl, m.from, m.to))
       editor.commands.setTextSelection({ from: m.from, to: m.from + repl.length })
       editor.commands.scrollIntoView()
     } catch {
@@ -205,13 +210,13 @@ export default function FindReplaceBar({ editor }: Props) {
 
   const handleReplaceAll = () => {
     if (!editor || matches.length === 0 || !query) return
-    // Apply from last to first so earlier positions stay valid
-    const tr = editor.state.tr
-    for (let i = matches.length - 1; i >= 0; i--) {
-      const m = matches[i]
-      tr.replaceWith(m.from, m.to, editor.state.schema.text(replacementFor(m)))
-    }
     try {
+      // Apply from last to first so earlier positions stay valid
+      const tr = editor.state.tr
+      for (let i = matches.length - 1; i >= 0; i--) {
+        const m = matches[i]
+        tr.insertText(replacementFor(m), m.from, m.to)
+      }
       editor.view.dispatch(tr)
       editor.commands.scrollIntoView()
     } catch {
@@ -223,7 +228,7 @@ export default function FindReplaceBar({ editor }: Props) {
 
   if (!isFindOpen) return null
 
-  const inputStyle: React.CSSProperties = {
+  const inputStyle: CSSProperties = {
     flex: 1,
     padding: '4px 8px',
     borderRadius: 4,
@@ -234,7 +239,7 @@ export default function FindReplaceBar({ editor }: Props) {
     outline: 'none'
   }
 
-  const toggleStyle = (active: boolean): React.CSSProperties => ({
+  const toggleStyle = (active: boolean): CSSProperties => ({
     padding: '3px 6px',
     borderRadius: 4,
     border: '1px solid var(--chrome-border)',
@@ -244,7 +249,7 @@ export default function FindReplaceBar({ editor }: Props) {
     fontSize: 11
   })
 
-  const iconBtnStyle: React.CSSProperties = {
+  const iconBtnStyle: CSSProperties = {
     padding: '3px',
     border: 'none',
     background: 'none',

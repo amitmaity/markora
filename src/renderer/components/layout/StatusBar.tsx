@@ -1,10 +1,20 @@
-import React from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { useEditorStore, useActiveTab } from '../../store/editorStore'
 import { Palette } from 'lucide-react'
 import { ALL_THEMES, THEME_LABELS } from '../../themes/themeManager'
 
 export default function StatusBar() {
-  const { isSourceMode, isFocusMode, isTypewriterMode, isAutoSaveEnabled, activeTheme, setTheme } = useEditorStore()
+  const { isSourceMode, isFocusMode, isTypewriterMode, isAutoSaveEnabled, activeTheme, setTheme } =
+    useEditorStore(
+      useShallow((s) => ({
+        isSourceMode: s.isSourceMode,
+        isFocusMode: s.isFocusMode,
+        isTypewriterMode: s.isTypewriterMode,
+        isAutoSaveEnabled: s.isAutoSaveEnabled,
+        activeTheme: s.activeTheme,
+        setTheme: s.setTheme
+      }))
+    )
   const { stats, filePath } = useActiveTab()
   const { wordCount, charCount, lineCount, readingTime } = stats
 
@@ -68,7 +78,7 @@ export default function StatusBar() {
 
         {filePath && (
           <span className="opacity-50 truncate max-w-48 text-[11px]" title={filePath}>
-            {filePath.split('/').slice(-2).join('/')}
+            {filePath.split(/[\\/]/).slice(-2).join('/')}
           </span>
         )}
       </div>

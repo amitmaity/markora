@@ -1,6 +1,5 @@
-import React from 'react'
 import { useActiveTab } from '../../store/editorStore'
-import { editorInstance } from '../../services/editorInstance'
+import { richEditor } from '../../services/editorInstance'
 import type { HeadingItem } from '../../types/editor'
 
 function headingPadding(level: number): number {
@@ -11,7 +10,7 @@ export default function OutlineView() {
   const { headings } = useActiveTab()
 
   const scrollToHeading = (heading: HeadingItem) => {
-    const editor = editorInstance.current
+    const editor = richEditor()
     if (!editor) return
     try {
       // Scroll the heading's DOM node into view and place the cursor in it

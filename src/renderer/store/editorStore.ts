@@ -66,7 +66,7 @@ interface EditorState {
   nextTab: () => void
   prevTab: () => void
   updateTabMarkdown: (id: string, md: string) => void
-  markTabSaved: (id: string) => void
+  markTabSaved: (id: string, savedContent: string) => void
   setTabDocument: (id: string, path: string | null, content: string) => void
   setTabHeadings: (id: string, headings: HeadingItem[]) => void
   reconcileTabMarkdown: (id: string, md: string) => void
@@ -193,12 +193,18 @@ export const useEditorStore = create<EditorState>((set) => ({
         headings: []
       }
 
-      const active = state.tabs.find((tab) => tab.id === state.activeTabId)
+      const tab = createTab(doc)
+      const active = state.tabs.find((t) => t.id === state.activeTabId)
       if (active && isReusableUntitled(active)) {
-        return { tabs: patchTab(state.tabs, active.id, doc) }
+        // Swap in a fresh tab (new id) rather than patching the old one, so
+        // its editor remounts with empty undo history — otherwise Cmd+Z
+        // right after opening would restore the previous document.
+        return {
+          tabs: state.tabs.map((t) => (t.id === active.id ? tab : t)),
+          activeTabId: tab.id
+        }
       }
 
-      const tab = createTab(doc)
       return { tabs: [...state.tabs, tab], activeTabId: tab.id }
     }),
 
@@ -286,12 +292,14 @@ export const useEditorStore = create<EditorState>((set) => ({
       }))
     })),
 
-  markTabSaved: (id) =>
+  // savedContent is what was actually written to disk. Edits made while the
+  // write was in flight stay dirty.
+  markTabSaved: (id, savedContent) =>
     set((state) => ({
       tabs: patchTab(state.tabs, id, (tab) => ({
         ...tab,
-        isDirty: false,
-        savedMarkdown: tab.rawMarkdown
+        savedMarkdown: savedContent,
+        isDirty: tab.rawMarkdown !== savedContent
       }))
     })),
 
